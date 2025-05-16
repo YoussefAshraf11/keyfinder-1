@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Pencil } from "lucide-react";
+import { Pencil, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 /* images ----------------------------------------------------------- */
 import bgCover from "../../assets/Profile/cover.svg";
@@ -49,7 +50,8 @@ function Field({ label, value, onSave, type = "text", mask = false }) {
 /* main profile component                             */
 /* -------------------------------------------------- */
 export default function Profile() {
-  /* local demo state – replace with API data later */
+  const navigate = useNavigate();
+
   const [user, setUser] = useState({
     name: "Ahmad Khatab",
     email: "user123@no1.com",
@@ -58,17 +60,25 @@ export default function Profile() {
     country: "Egypt",
   });
 
-  /* helper to update single field */
   const update = (k) => (val) => setUser((u) => ({ ...u, [k]: val }));
+
+  const handleLogout = () => {
+    // Remove user data from localStorage
+    localStorage.removeItem("user");
+    // localStorage.removeItem("role");
+    // OR if saved as one object like "user":
+    // localStorage.removeItem("user");
+
+    // Optionally redirect or reload:
+    navigate("/"); // or login page
+  };
 
   return (
     <section
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: `url(${bgCover})` }}
     >
-      {/* card */}
       <div className="relative w-[340px] sm:w-[420px] bg-[#002349] rounded-xl p-8 shadow-xl">
-        {/* avatar */}
         <img
           src={avatarImg}
           alt="Profile"
@@ -79,7 +89,7 @@ export default function Profile() {
           User Profile
         </h2>
 
-        <div className="space-y-4">
+        <div className="space-y-4 mb-8">
           <Field label="Name:" value={user.name} onSave={update("name")} />
           <Field
             label="Email:"
@@ -100,6 +110,15 @@ export default function Profile() {
             onSave={update("country")}
           />
         </div>
+
+        {/* Logout button */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 bg-white text-[#002349] font-medium py-2 rounded hover:bg-gray-100 transition"
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
       </div>
     </section>
   );

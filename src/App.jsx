@@ -18,7 +18,9 @@ import MyAppointments from "./pages/MyAppointments/myappointments.jsx";
 import Payment from "./pages/Payment/payment.jsx";
 import Profile from "./pages/Profile/profile.jsx";
 import ScrollToTop from "./components/ScrollToTop/scrolltotop.jsx";
-
+import BrokerHomePage from "./pages/Broker/BrokerHomePage/brokerhomepage.jsx";
+import BrokerAppointmentDetail from "./pages/Broker/BrokerAppointmentDetails/brokerappointmentdetails.jsx";
+import ConfirmPaymentPage from "./pages/Broker/ConfirmPaymentPage/confirmpaymentpage.jsx";
 export default function App() {
   return (
     <>
@@ -42,6 +44,22 @@ export default function App() {
           <Route path="myappointments" element={<MyAppointments />} />
           <Route path="payment" element={<Payment />} />
           <Route path="profile" element={<Profile />} />
+          {/* Broker routes */}
+          <Route path="broker-home" element={<BrokerHomePage />} />
+          <Route
+            path="/broker/appointments/:id"
+            element={<BrokerAppointmentDetail />}
+          />
+          <Route path="/confirm-payment" element={<ConfirmPaymentPage />} />
+          {/* 404 catch-all */}
+          <Route
+            path="*"
+            element={
+              <div className="min-h-screen flex items-center justify-center">
+                <h1 className="text-2xl">Page Not Found</h1>
+              </div>
+            }
+          />
         </Route>
       </Routes>
     </>

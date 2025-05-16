@@ -46,7 +46,7 @@ export default function Schedule() {
 
     const appointment = {
       id: Date.now(),
-      img :selectedImg,
+      img: selectedImg,
       broker: selectedBroker.name,
       at: date,
       location: "Alexandria",

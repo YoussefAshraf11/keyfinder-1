@@ -138,28 +138,36 @@ export default function AuthFlow() {
             {step === "broker" && (
               <div className="bg-[#002349] p-8 rounded-xl text-white">
                 <h2 className="text-2xl font-bold mb-4 text-center">Sign in</h2>
-                <form onSubmit={(e) => e.preventDefault()}>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const email = e.target[1].value;
+                    localStorage.setItem(
+                      "user",
+                      JSON.stringify({ email, role: "broker" })
+                    );
+                    window.location.href = "/broker-home";
+                  }}
+                >
+                  {" "}
                   <label className="block mb-1 text-sm">ID</label>
                   <input
                     type="text"
                     required
                     className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none"
                   />
-
                   <label className="block mb-1 text-sm">Email Address</label>
                   <input
                     type="email"
                     required
                     className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none"
                   />
-
                   <label className="block mb-1 text-sm">Password</label>
                   <input
                     type="password"
                     required
                     className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none"
                   />
-
                   <div className="flex items-center justify-between mb-6 text-sm">
                     <label className="inline-flex items-center">
                       <input
@@ -176,12 +184,10 @@ export default function AuthFlow() {
                       Forgot Password?
                     </button>
                   </div>
-
                   <p className="text-xs mb-4 text-center">
                     By submitting this form, you accept our Privacy Policy and
                     Terms of Use.
                   </p>
-
                   <button
                     type="submit"
                     className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100"

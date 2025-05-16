@@ -162,7 +162,8 @@ export default function Favourites() {
                       {p.price}
                     </li>
                   </ul>
-<button
+
+                  <button
                     onClick={() => {
                       Swal.fire({
                         title: "Are you sure?",
