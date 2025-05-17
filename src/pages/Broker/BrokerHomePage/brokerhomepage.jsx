@@ -36,12 +36,21 @@ const DUMMY_APPTS = [
 export default function BrokerHomePage() {
   const navigate = useNavigate();
 
-  // load from localStorage or fall back to DUMMY_APPTS
+  // load from localStorage or fall back to DUMMY_APPTS only if key is absent
   const [apps, setApps] = useState(() => {
-    const stored = JSON.parse(
-      localStorage.getItem("brokerAppointments") || "null"
-    );
-    return Array.isArray(stored) && stored.length ? stored : DUMMY_APPTS;
+    const raw = localStorage.getItem("brokerAppointments");
+    if (raw === null) {
+      // no saved appointments → use defaults
+      return DUMMY_APPTS;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      // if parsed is an array, use it (even if it's empty)
+      return Array.isArray(parsed) ? parsed : DUMMY_APPTS;
+    } catch {
+      // malformed JSON → reset to defaults
+      return DUMMY_APPTS;
+    }
   });
 
   // persist any changes to brokerAppointments
@@ -49,15 +58,20 @@ export default function BrokerHomePage() {
     localStorage.setItem("brokerAppointments", JSON.stringify(apps));
   }, [apps]);
 
+  // if no appointments, center the message
+  if (apps.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-gray-600 text-xl">
+          You have no appointments scheduled.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-screen-xl mx-auto px-4 py-8 space-y-8">
-        {apps.length === 0 && (
-          <p className="text-center text-gray-600 text-xl">
-            You have no appointments scheduled.
-          </p>
-        )}
-
         {apps.map((app) => (
           <div
             key={app.id}

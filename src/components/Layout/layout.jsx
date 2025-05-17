@@ -8,7 +8,8 @@ import Footer from "../Fotter/fotter.jsx";
 
 export default function Layout() {
   const { pathname } = useLocation();
-  const isBrokerRoute = pathname.startsWith("/broker");
+  const isBrokerRoute =
+    pathname.startsWith("/broker") || pathname.startsWith("/confirm-payment");
   return (
     <>
       <Navbar />

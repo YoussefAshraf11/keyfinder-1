@@ -3,7 +3,6 @@ import { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 
 export default function ConfirmPaymentPage() {
-
   /* 1) Load REAL appointments into state */
   const [storedApps, setStoredApps] = useState(() =>
     JSON.parse(localStorage.getItem("likedAppointments") || "[]")
@@ -31,10 +30,23 @@ export default function ConfirmPaymentPage() {
   }, []);
 
   /* 4) Enrich REAL appointments with expiryTs */
-  const enrichedReal = storedApps.map((a) => ({
-    ...a,
-    expiryTs: new Date(a.date).getTime(),
-  }));
+  const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
+
+  // Create a copy to update localStorage if needed
+  const enrichedReal = storedApps.map((a) => {
+    // If already has expiryTs, keep it
+    if (a.expiryTs) return a;
+
+    // Otherwise, assign new expiryTs
+    const newExpiry = Date.now() + TWO_WEEKS_MS;
+    a.expiryTs = newExpiry;
+    return a;
+  });
+
+  // Save the enriched data (with expiryTs added) back to localStorage once
+  useEffect(() => {
+    localStorage.setItem("likedAppointments", JSON.stringify(enrichedReal));
+  }, [enrichedReal]);
 
   /* 5) Combine → compute secondsLeft → filter out expired */
   const activeApps = [testApp, ...enrichedReal]
