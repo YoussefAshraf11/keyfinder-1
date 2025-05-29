@@ -53,7 +53,7 @@ export default function Profile() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState({
-    name: "Ahmad Khatab",
+    username: "Ahmad Khatab22",
     email: "user123@no1.com",
     password: "myPassword!",
     phone: "01•••••••••",
@@ -70,7 +70,7 @@ export default function Profile() {
     // localStorage.removeItem("user");
 
     // Optionally redirect or reload:
-    navigate("/"); // or login page
+    navigate("/login"); // or login page
   };
 
   return (
@@ -90,7 +90,7 @@ export default function Profile() {
         </h2>
 
         <div className="space-y-4 mb-8">
-          <Field label="Name:" value={user.name} onSave={update("name")} />
+          <Field label="UserName:" value={user.username} onSave={update("username")} />
           <Field
             label="Email:"
             value={user.email}
@@ -104,11 +104,7 @@ export default function Profile() {
             mask
           />
           <Field label="Phone" value={user.phone} onSave={update("phone")} />
-          <Field
-            label="Country"
-            value={user.country}
-            onSave={update("country")}
-          />
+          
         </div>
 
         {/* Logout button */}

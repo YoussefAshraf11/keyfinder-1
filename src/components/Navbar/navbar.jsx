@@ -17,25 +17,49 @@ const NAV_ITEMS = [
   { name: "Interactive Maps", path: "/map" },
 ];
 
+
 export default function Navbar() {
   const navigate = useNavigate();
+ 
   const user = JSON.parse(localStorage.getItem("user"));
   const isBroker = user?.role === "broker";
   const homePath = isBroker ? "/broker-home" : "/";
 
   /* ——— BROKER VIEW ——— */
-  if (isBroker) {
+   const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/login");
+    window.location.reload(); // optional: refresh to reset UI state
+  };
+if (isBroker) {
     return (
       <header className="w-full shadow-md text-white">
-        {/* slim top stripe with Home icon */}
+        {/* slim top stripe with Logout/Login + Home */}
         <div className="w-full bg-[#001731]">
-          <div className="container mx-auto flex justify-end px-4 py-2">
-            <Home
-              size={24}
+          <div className="container mx-auto flex justify-end items-center gap-3 px-5 py-2">
+              <Home
+              size={20}
               strokeWidth={2.5}
               className="cursor-pointer"
               onClick={() => navigate(homePath)}
             />
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="text-sm font-medium hover:text-gold transition-colors"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="text-sm font-medium hover:text-gold transition-colors"
+              >
+                Join / Log In
+              </Link>
+            )}
+
+          
           </div>
         </div>
 

@@ -6,6 +6,9 @@ import backgroundImg from "../../assets/Login/login.svg";
 
 export default function AuthFlow() {
   const [step, setStep] = useState("select");
+  const [brokerCode, setBrokerCode] = useState("");
+  const [brokerNewPass, setBrokerNewPass] = useState("");
+  const [brokerConfirmPass, setBrokerConfirmPass] = useState("");
   const navigate = useNavigate();
 
   return (
@@ -15,7 +18,6 @@ export default function AuthFlow() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-cover bg-center"
           style={{ backgroundImage: `url(${backgroundImg})` }}
         >
-          {/* Home icon */}
           <Link
             to="/"
             className="absolute top-4 right-4 text-white hover:text-gray-200 z-10"
@@ -23,9 +25,7 @@ export default function AuthFlow() {
             <FaHome size={24} />
           </Link>
 
-          {/* Modal container */}
           <div className="relative z-20 w-full max-w-md">
-            {/* Arrow: on "Are you?" goes to SignIn page; otherwise returns to "Are you?" */}
             <button
               onClick={() =>
                 step === "select" ? navigate("/login") : setStep("select")
@@ -35,7 +35,6 @@ export default function AuthFlow() {
               <FaArrowLeft size={20} />
             </button>
 
-            {/* Close “×” on confirmation screens → return to proper form */}
             {(step === "buyer-forgot-confirm" ||
               step === "broker-forgot-confirm") && (
               <button
@@ -50,7 +49,6 @@ export default function AuthFlow() {
               </button>
             )}
 
-            {/* --- Step 1: Are you? --- */}
             {step === "select" && (
               <div className="bg-[#002349] p-8 rounded-xl text-white text-center">
                 <h2 className="text-2xl font-bold mb-6">Are you?</h2>
@@ -73,7 +71,6 @@ export default function AuthFlow() {
               </div>
             )}
 
-            {/* --- Step 2A: Buyer Sign-Up --- */}
             {step === "buyer" && (
               <div className="bg-[#002349] p-8 rounded-xl text-white">
                 <h2 className="text-2xl font-bold mb-4 text-center">
@@ -89,52 +86,26 @@ export default function AuthFlow() {
                   </button>
                 </p>
                 <form onSubmit={(e) => e.preventDefault()}>
+                  <label className="block mb-1 text-sm">UserName</label>
+                  <input type="text" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
                   <label className="block mb-1 text-sm">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none"
-                  />
-
+                  <input type="email" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
                   <label className="block mb-1 text-sm">Password</label>
-                  <input
-                    type="password"
-                    required
-                    className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none"
-                  />
-
-                  <label className="block mb-1 text-sm">
-                    Verify Your Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none"
-                  />
-
+                  <input type="password" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
+                  <label className="block mb-1 text-sm">Verify Your Password</label>
+                  <input type="password" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
                   <label className="block mb-1 text-sm">Phone Number</label>
-                  <input
-                    type="tel"
-                    required
-                    className="w-full border-b border-white mb-6 bg-transparent py-1 focus:outline-none"
-                  />
-
+                  <input type="tel" required className="w-full border-b border-white mb-6 bg-transparent py-1 focus:outline-none" />
                   <p className="text-xs mb-4 text-center">
-                    By creating an account, you acknowledge our Privacy Policy
-                    and Terms of Use.
+                    By creating an account, you acknowledge our Privacy Policy and Terms of Use.
                   </p>
-
-                  <button
-                    type="submit"
-                    className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100"
-                  >
+                  <button type="submit" className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100">
                     Sign Up
                   </button>
                 </form>
               </div>
             )}
 
-            {/* --- Step 2B: Broker Sign-In --- */}
             {step === "broker" && (
               <div className="bg-[#002349] p-8 rounded-xl text-white">
                 <h2 className="text-2xl font-bold mb-4 text-center">Sign in</h2>
@@ -142,38 +113,17 @@ export default function AuthFlow() {
                   onSubmit={(e) => {
                     e.preventDefault();
                     const email = e.target[1].value;
-                    localStorage.setItem(
-                      "user",
-                      JSON.stringify({ email, role: "broker" })
-                    );
+                    localStorage.setItem("user", JSON.stringify({ email, role: "broker" }));
                     window.location.href = "/broker-home";
                   }}
                 >
-                  {" "}
-                  <label className="block mb-1 text-sm">ID</label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none"
-                  />
                   <label className="block mb-1 text-sm">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none"
-                  />
+                  <input type="email" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
                   <label className="block mb-1 text-sm">Password</label>
-                  <input
-                    type="password"
-                    required
-                    className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none"
-                  />
+                  <input type="password" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
                   <div className="flex items-center justify-between mb-6 text-sm">
                     <label className="inline-flex items-center">
-                      <input
-                        type="checkbox"
-                        className="form-checkbox h-4 w-4 text-white"
-                      />
+                      <input type="checkbox" className="form-checkbox h-4 w-4 text-white" />
                       <span className="ml-2">keep me signed in</span>
                     </label>
                     <button
@@ -185,134 +135,93 @@ export default function AuthFlow() {
                     </button>
                   </div>
                   <p className="text-xs mb-4 text-center">
-                    By submitting this form, you accept our Privacy Policy and
-                    Terms of Use.
+                    By submitting this form, you accept our Privacy Policy and Terms of Use.
                   </p>
-                  <button
-                    type="submit"
-                    className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100"
-                  >
+                  <button type="submit" className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100">
                     Sign in
                   </button>
                 </form>
               </div>
             )}
 
-            {/* --- Buyer Forgot Password Form --- */}
-            {step === "buyer-forgot" && (
-              <div className="bg-[#002349] p-8 rounded-xl text-white">
-                <h2 className="text-2xl font-bold mb-2 text-center">
-                  Forgot Password?
-                </h2>
-                <p className="text-sm mb-6 text-center">
-                  A password reset link will be sent to the provided email
-                  address.
-                </p>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    setStep("buyer-forgot-confirm");
-                  }}
-                >
-                  <label className="block mb-1 text-sm">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    className="w-full border-b border-white mb-6 bg-transparent py-1 focus:outline-none"
-                  />
-
-                  <p className="text-xs mb-4 text-center">
-                    By submitting this form, you accept our Privacy Policy and
-                    Terms of Use.
-                  </p>
-
-                  <button
-                    type="submit"
-                    className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100"
-                  >
-                    Send Link
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {/* --- Buyer Forgot Confirmation --- */}
-            {step === "buyer-forgot-confirm" && (
-              <div className="relative bg-[#002349] p-6 rounded-xl text-white">
-                <button
-                  onClick={() => setStep("buyer")}
-                  className="absolute top-4 right-4 bg-white/25 hover:bg-white/40 rounded-full p-1.5 transition"
-                >
-                  <FaTimes size={16} />
-                </button>
-                <p className="text-center">
-                  We’ve emailed you instructions for setting your password; you
-                  should receive it shortly. If you don’t receive an email,
-                  please check the address you registered with and your spam
-                  folder.
-                </p>
-              </div>
-            )}
-
-            {/* --- Broker Forgot Password Form --- */}
             {step === "broker-forgot" && (
               <div className="bg-[#002349] p-8 rounded-xl text-white">
-                <h2 className="text-2xl font-bold mb-2 text-center">
-                  Forgot Password?
-                </h2>
+                <h2 className="text-2xl font-bold mb-2 text-center">Forgot Password?</h2>
                 <p className="text-sm mb-6 text-center">
-                  A password reset link will be sent to the provided email
-                  address and your ID.
+                  A password reset link will be sent to the provided email address and your ID.
                 </p>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    setStep("broker-forgot-confirm");
-                  }}
-                >
+                <form onSubmit={(e) => { e.preventDefault(); setStep("broker-code-verification"); }}>
                   <label className="block mb-1 text-sm">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none"
-                  />
-                  <label className="block mb-1 text-sm">ID</label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full border-b border-white mb-6 bg-transparent py-1 focus:outline-none"
-                  />
-
+                  <input type="email" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
                   <p className="text-xs mb-4 text-center">
-                    By submitting this form, you accept our Privacy Policy and
-                    Terms of Use.
+                    By submitting this form, you accept our Privacy Policy and Terms of Use.
                   </p>
-
-                  <button
-                    type="submit"
-                    className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100"
-                  >
+                  <button type="submit" className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100">
                     Send Link
                   </button>
                 </form>
               </div>
             )}
 
-            {/* --- Broker Forgot Confirmation --- */}
-            {step === "broker-forgot-confirm" && (
-              <div className="relative bg-[#002349] p-6 rounded-xl text-white">
-                <button
-                  onClick={() => setStep("broker")}
-                  className="absolute top-4 right-4 bg-white/25 hover:bg-white/40 rounded-full p-1.5 transition"
+            {step === "broker-code-verification" && (
+              <div className="bg-[#002349] p-8 rounded-xl text-white text-center">
+                <h2 className="text-xl font-bold mb-4">Verify Your Code</h2>
+                <p className="text-sm mb-4">A code has been sent to your email address</p>
+                <form onSubmit={(e) => { e.preventDefault(); setStep("broker-password-reset"); }}>
+                  <input
+                    type="text"
+                    value={brokerCode}
+                    onChange={(e) => setBrokerCode(e.target.value)}
+                    required
+                    placeholder="Enter verification code"
+                    className="w-full mb-4 py-2 px-3 text-gray-900 bg-white rounded"
+                  />
+                  <button type="submit" className="w-full py-2 bg-white text-[#002349] font-semibold rounded">
+                    Submit
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {step === "broker-password-reset" && (
+              <div className="bg-[#002349] p-8 rounded-xl text-white text-center">
+                <h2 className="text-xl font-bold mb-6">Changing Your Password</h2>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (brokerNewPass !== brokerConfirmPass) {
+                      alert("Passwords do not match");
+                      return;
+                    }
+                    setStep("broker");
+                  }}
                 >
-                  <FaTimes size={16} />
-                </button>
-                <p className="text-center">
-                  We’ve emailed you instructions for setting your password; you
-                  should receive it shortly. If you don’t receive an email,
-                  please check the address you registered with and your spam
-                  folder.
-                </p>
+                  <div className="text-left mb-3">
+                    <label className="block mb-1 text-sm">Enter new password</label>
+                    <input
+                      type="password"
+                      value={brokerNewPass}
+                      onChange={(e) => setBrokerNewPass(e.target.value)}
+                      placeholder="New password"
+                      className="w-full py-2 px-3 text-gray-900 bg-white rounded"
+                      required
+                    />
+                  </div>
+                  <div className="text-left mb-5">
+                    <label className="block mb-1 text-sm">Verify New Password</label>
+                    <input
+                      type="password"
+                      value={brokerConfirmPass}
+                      onChange={(e) => setBrokerConfirmPass(e.target.value)}
+                      placeholder="Confirm password"
+                      className="w-full py-2 px-3 text-gray-900 bg-white rounded"
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="w-full py-2 bg-white text-[#002349] font-semibold rounded">
+                    Save
+                  </button>
+                </form>
               </div>
             )}
           </div>

@@ -1,26 +1,45 @@
-// src/components/ForgotPassword.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaHome, FaTimes } from "react-icons/fa";
+import { FaHome } from "react-icons/fa";
 import backgroundImg from "../../assets/Login/login.svg";
 
 export default function ForgotPassword() {
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
-    // TODO: call your forgot-password API here
-    setSent(true);
+    // TODO: API to send reset code
+    setStep(2);
+  };
+
+  const handleCodeSubmit = async (e) => {
+    e.preventDefault();
+    // TODO: Verify code
+    setStep(3);
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+    // TODO: Change password via API
+    navigate("/login");
   };
 
   return (
     <div
-      className="relative min-h-screen bg-cover bg-center flex items-center justify-center"
+      className="fixed inset-0 bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: `url(${backgroundImg})` }}
     >
-      {/* Home icon */}
+      {/* Home Icon */}
       <Link
         to="/"
         className="absolute top-4 right-4 text-white hover:text-gray-200 z-10"
@@ -29,16 +48,13 @@ export default function ForgotPassword() {
       </Link>
 
       <div className="relative bg-[#002349] p-8 rounded-xl shadow-xl w-full max-w-sm text-white">
-        {!sent ? (
+        {step === 1 && (
           <>
-            <h2 className="text-2xl font-bold mb-2 text-center">
-              Forgot Password?
-            </h2>
+            <h2 className="text-2xl font-bold mb-4 text-center">Forgot Password?</h2>
             <p className="text-sm mb-6 text-center">
-              A password reset link will be sent to the provided email address.
+              A password reset link will be sent to your email.
             </p>
-
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleEmailSubmit}>
               <label className="block mb-1 text-sm">Email Address</label>
               <input
                 type="email"
@@ -46,14 +62,8 @@ export default function ForgotPassword() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="you@example.com"
-                className="w-full border-b border-white mb-6 bg-transparent py-1 focus:outline-none"
+                className="w-full mb-6 py-2 px-3 text-gray-900 bg-white rounded"
               />
-
-              <p className="text-xs mb-4 text-center">
-                By submitting this form, you acknowledge that you accept our
-                Privacy Policy and Terms of Use.
-              </p>
-
               <button
                 type="submit"
                 className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100 transition"
@@ -62,29 +72,61 @@ export default function ForgotPassword() {
               </button>
             </form>
           </>
-        ) : (
-          <>
-            {/* Close button */}
-            <button
-              onClick={() => navigate("/login")}
-              className="
-                absolute top-4 right-4
-                p-1.5
-                bg-white/25 hover:bg-white/40
-                rounded-full
-                transition
-                z-10
-              "
-            >
-              <FaTimes size={14} className="text-white" />
-            </button>
+        )}
 
-            <p className="text-center">
-              We’ve emailed you instructions for setting your password; you
-              should receive it shortly. If you don’t receive an email, please
-              check the address you registered with, and your spam folder.
-            </p>
-          </>
+        {step === 2 && (
+          <form onSubmit={handleCodeSubmit} className="text-center">
+            <h2 className="text-xl font-bold mb-4">Verify Your Code</h2>
+            <p className="text-sm mb-4">A code has been sent to your email address</p>
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              required
+              placeholder="Enter verification code"
+              className="w-full mb-4 py-2 px-3 text-gray-900 bg-white rounded"
+            />
+            <button
+              type="submit"
+              className="w-full py-2 bg-white text-[#002349] font-semibold rounded"
+            >
+              Submit
+            </button>
+          </form>
+        )}
+
+        {step === 3 && (
+          <form onSubmit={handlePasswordChange} className="text-center">
+            <h2 className="text-xl font-bold mb-6">Changing Your Password</h2>
+            <div className="text-left mb-3">
+              <label className="block mb-1 text-sm">Enter new password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New password"
+                className="w-full py-2 px-3 text-gray-900 bg-white rounded"
+                required
+              />
+            </div>
+            <div className="text-left mb-5">
+              <label className="block mb-1 text-sm">Verify New Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm password"
+                className="w-full py-2 px-3 text-gray-900 bg-white rounded"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full py-2 bg-white text-[#002349] font-semibold rounded"
+            >
+              Save
+            </button>
+          </form>
         )}
       </div>
     </div>
