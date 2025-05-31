@@ -13,9 +13,10 @@ export default function AuthFlow() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (queryStep === "broker") setStep("broker");
-    else if (queryStep === "buyer") setStep("buyer");
-    else setStep("select");
+    //if (queryStep === "broker") setStep("broker");
+    //else if (queryStep === "buyer") setStep("buyer");
+    //else setStep("select");
+    setStep("buyer");
   }, [queryStep]);
 
   if (!step) return null;
@@ -35,7 +36,8 @@ export default function AuthFlow() {
       <div className="relative z-20 w-full max-w-md">
         <button
           onClick={() =>
-            step === "select" ? navigate("/login") : setStep("select")
+            //step === "select" ? navigate("/login") : setStep("select")
+            navigate("/login") 
           }
           className="absolute top-4 left-4 text-white hover:text-gray-200"
         >
@@ -89,27 +91,61 @@ export default function AuthFlow() {
                 onClick={() => navigate("/login")}
                 className="underline hover:text-gray-200"
               >
-                Sign in
+                Sign in 
               </button>
             </p>
-            <form onSubmit={(e) => e.preventDefault()}>
-              <label className="block mb-1 text-sm">UserName</label>
-              <input type="text" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
-              <label className="block mb-1 text-sm">Email Address</label>
-              <input type="email" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
-              <label className="block mb-1 text-sm">Password</label>
-              <input type="password" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
-              <label className="block mb-1 text-sm">Verify Your Password</label>
-              <input type="password" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
-              <label className="block mb-1 text-sm">Phone Number</label>
-              <input type="tel" required className="w-full border-b border-white mb-6 bg-transparent py-1 focus:outline-none" />
-              <p className="text-xs mb-4 text-center">
-                By creating an account, you acknowledge our Privacy Policy and Terms of Use.
-              </p>
-              <button type="submit" className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100">
-                Sign Up
-              </button>
-            </form>
+     <form onSubmit={(e) => e.preventDefault()}>
+  <label className="block mb-1 text-sm">UserName</label>
+  <input type="text" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
+
+  <label className="block mb-1 text-sm">Email Address</label>
+  <input type="email" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
+
+  <label className="block mb-1 text-sm">Password</label>
+  <input type="password" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
+
+  <label className="block mb-1 text-sm">Verify Your Password</label>
+  <input type="password" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
+
+  <label className="block mb-1 text-sm">Phone Number</label>
+  <input type="tel" required className="w-full border-b border-white mb-6 bg-transparent py-1 focus:outline-none" />
+
+  {/* Role selection with radio buttons */}
+  <div className="bg-[#002349] p-8 rounded-xl text-white text-center">
+    <h2 className="text-2xl font-bold mb-6">Are you?</h2>
+    <div className="flex justify-around">
+      <label className="flex items-center space-x-2">
+        <input
+          type="radio"
+          name="role"
+          value="buyer"
+          required
+          className="form-radio accent-white"
+        />
+        <span className="font-semibold">Buyer</span>
+      </label>
+      <label className="flex items-center space-x-2">
+        <input
+          type="radio"
+          name="role"
+          value="broker"
+          required
+          className="form-radio accent-white"
+        />
+        <span className="font-semibold">Broker</span>
+      </label>
+    </div>
+  </div>
+
+  <p className="text-xs mb-4 text-center">
+    By creating an account, you acknowledge our Privacy Policy and Terms of Use.
+  </p>
+
+  <button type="submit" className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100">
+    Sign Up
+  </button>
+</form>
+
           </div>
         )}
 
