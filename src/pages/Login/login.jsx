@@ -3,17 +3,41 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaHome } from "react-icons/fa";
 import backgroundImg from "../../assets/Login/login.svg";
+import { login } from "../../network/auth.js";
+
+const roletypes = {
+  buyer: "buyer",
+  broker: "broker",
+  admin: "admin"
+};
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [keepSignedIn, setKeepSignedIn] = useState(false);
+  const [errMessage,setErrMessage] = useState("")
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    localStorage.setItem("user", JSON.stringify({ email }));
-    window.location.href = "/";
+    try{
+      const response = await login({
+        email:email,
+        password:password
+      })
+      const userData =response?.data;
+  
+  if(userData?.data?.user.role === roletypes.admin){
+    console.log("admin")
+  }else{
+    console.log("other")
+  }
+    }catch(err){
+      setErrMessage(err.response.data.message)
+    }
+
+    // localStorage.setItem("user", JSON.stringify({ email }));
+    // window.location.href = "/";
   };
   return (
     <div
@@ -41,6 +65,7 @@ export default function SignIn() {
         </p>
 
         {/* Sub-header */}
+        <p className="text-red-700 ">{errMessage}</p>
         <p className="font-semibold mb-4">Sign In with email address</p>
 
         {/* Form */}
