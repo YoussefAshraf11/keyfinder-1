@@ -37,7 +37,6 @@ export default function SignIn() {
     }
 
     // localStorage.setItem("user", JSON.stringify({ email }));
-    // window.location.href = "/";
   };
   return (
     <div
