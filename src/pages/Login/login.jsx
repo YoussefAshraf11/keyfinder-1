@@ -1,6 +1,6 @@
 // src/components/SignIn.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaHome } from "react-icons/fa";
 import backgroundImg from "../../assets/Login/login.svg";
 import { login } from "../../network/auth.js";
@@ -12,6 +12,7 @@ const roletypes = {
 };
 
 export default function SignIn() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [keepSignedIn, setKeepSignedIn] = useState(false);
@@ -25,12 +26,27 @@ export default function SignIn() {
         email:email,
         password:password
       })
-      const userData =response?.data;
+      const userData = response?.data;
+      const userRole = userData?.data?.user.role;
   
-      if(userData?.data?.user.role === roletypes.admin){
-        console.log("admin")
-      }else{
-        console.log("other")
+      if(userRole === roletypes.admin){
+        console.log("Admin logged in");
+      } else if(userRole === roletypes.broker){
+        // Store user data in localStorage for navbar to use
+        localStorage.setItem("user", JSON.stringify({
+          ...userData.data.user,
+          role: userRole
+        }));
+        navigate('/broker-home');
+      } else if(userRole === roletypes.buyer){
+        // Store user data in localStorage for navbar to use
+        localStorage.setItem("user", JSON.stringify({
+          ...userData.data.user,
+          role: userRole
+        }));
+        navigate('/');
+      } else {
+        setErrMessage("Invalid user role");
       }
     }catch(err){
       setErrMessage("Invalid email or password. Please try again.")
