@@ -37,19 +37,16 @@ export default function App() {
           <Route path="/realstate-projects" element={<ProjectsGrid />} />
           <Route path="/residences" element={<DevelopersGrid />} />
           <Route path="/map" element={<AlexandriaMap />} />
-          <Route path="listing" element={<PropertyList />} />
-          <Route path="favourites" element={<Favourites />} />
-          <Route path="unit-details" element={<UnitDetails />} />
-          <Route path="schedule" element={<Schedule />} />
-          <Route path="myappointments" element={<MyAppointments />} />
-          <Route path="payment" element={<Payment />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="/listing" element={<PropertyList />} />
+          <Route path="/favourites" element={<Favourites />} />
+          <Route path="/unit-details" element={<UnitDetails />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/myappointments" element={<MyAppointments />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/profile" element={<Profile />} />
           {/* Broker routes */}
-          <Route path="broker-home" element={<BrokerHomePage />} />
-          <Route
-            path="/broker/appointments/:id"
-            element={<BrokerAppointmentDetail />}
-          />
+          <Route path="/broker-home" element={<BrokerHomePage />} />
+          <Route path="/broker/appointments/:id" element={<BrokerAppointmentDetail />} />
           <Route path="/confirm-payment" element={<ConfirmPaymentPage />} />
           {/* 404 catch-all */}
           <Route

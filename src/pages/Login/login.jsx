@@ -141,8 +141,8 @@ export default function SignIn() {
 
           <p className="text-xs text-white/70 mb-6">
             By submitting this form, you acknowledge that you accept our{" "}
-            <Link to="/privacy" className="underline">
-              Privacy Policy
+            <Link to="/about" className="underline">
+              About Us
             </Link>{" "}
             and{" "}
             <Link to="/terms" className="underline">
