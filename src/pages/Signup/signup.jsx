@@ -3,6 +3,13 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaHome, FaTimes } from "react-icons/fa";
 import backgroundImg from "../../assets/Login/login.svg";
+import { signup } from "../../network/auth.js";
+
+const roletypes = {
+  buyer: "buyer",
+  broker: "broker",
+  admin: "admin"
+};
 
 export default function AuthFlow() {
   const queryStep = new URLSearchParams(window.location.search).get("step");
@@ -10,6 +17,7 @@ export default function AuthFlow() {
   const [brokerCode, setBrokerCode] = useState("");
   const [brokerNewPass, setBrokerNewPass] = useState("");
   const [brokerConfirmPass, setBrokerConfirmPass] = useState("");
+  const [errMessage, setErrMessage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,6 +26,83 @@ export default function AuthFlow() {
     //else setStep("select");
     setStep("buyer");
   }, [queryStep]);
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setErrMessage(""); // Clear any previous errors
+    
+    const formData = new FormData(e.target);
+    
+    // Get form values
+    const username = formData.get('username');
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const confirmPassword = formData.get('confirmPassword');
+    const phone = formData.get('phone');
+    const selectedRole = formData.get('role');
+    
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setErrMessage("Passwords do not match");
+      return;
+    }
+    
+    // Validate role
+    if (!Object.values(roletypes).includes(selectedRole)) {
+      setErrMessage("Invalid role selected");
+      return;
+    }
+
+    // Log the payload for debugging
+    console.log('Signup payload:', {
+      username,
+      email,
+      password,
+      confirmPassword,
+      phone,
+      role: selectedRole
+    });
+
+    try {
+      const response = await signup({
+        username,
+        email,
+        password,
+        confirmPassword,
+        phone,
+        role: selectedRole
+      });
+
+      // Log the response for debugging
+      console.log('Signup response:', response);
+
+      if (response?.data?.success) {
+        // After successful signup, navigate to login
+        navigate('/login');
+      } else {
+        const errorMsg = response?.data?.message || "Signup failed. Please try again.";
+        console.error('Signup failed:', errorMsg);
+        setErrMessage(errorMsg);
+      }
+    } catch (err) {
+      console.error('Signup error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+      
+      // More specific error messages based on the error
+      if (err.response?.status === 400) {
+        setErrMessage("Invalid input. Please check your information.");
+      } else if (err.response?.status === 409) {
+        setErrMessage("Email or username already exists.");
+      } else if (err.response?.status === 500) {
+        setErrMessage("Server error. Please try again later.");
+      } else {
+        setErrMessage(err.response?.data?.message || "Signup failed. Please try again.");
+      }
+    }
+  };
 
   if (!step) return null;
 
@@ -94,58 +179,98 @@ export default function AuthFlow() {
                 Sign in 
               </button>
             </p>
-     <form onSubmit={(e) => e.preventDefault()}>
-  <label className="block mb-1 text-sm">UserName</label>
-  <input type="text" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
 
-  <label className="block mb-1 text-sm">Email Address</label>
-  <input type="email" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
+            {errMessage && (
+              <p className="text-yellow-400 font-medium mb-4">{errMessage}</p>
+            )}
 
-  <label className="block mb-1 text-sm">Password</label>
-  <input type="password" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
+            <form onSubmit={handleSignup}>
+              <label className="block mb-1 text-sm">Username</label>
+              <input 
+                name="username"
+                type="text" 
+                required 
+                className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" 
+              />
 
-  <label className="block mb-1 text-sm">Verify Your Password</label>
-  <input type="password" required className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" />
+              <label className="block mb-1 text-sm">Email Address</label>
+              <input 
+                name="email"
+                type="email" 
+                required 
+                className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" 
+              />
 
-  <label className="block mb-1 text-sm">Phone Number</label>
-  <input type="tel" required className="w-full border-b border-white mb-6 bg-transparent py-1 focus:outline-none" />
+              <label className="block mb-1 text-sm">Password</label>
+              <input 
+                name="password"
+                type="password" 
+                required 
+                className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" 
+              />
 
-  {/* Role selection with radio buttons */}
-  <div className="bg-[#002349] p-8 rounded-xl text-white text-center">
-    <h2 className="text-2xl font-bold mb-6">Are you?</h2>
-    <div className="flex justify-around">
-      <label className="flex items-center space-x-2">
-        <input
-          type="radio"
-          name="role"
-          value="buyer"
-          required
-          className="form-radio accent-white"
-        />
-        <span className="font-semibold">Buyer</span>
-      </label>
-      <label className="flex items-center space-x-2">
-        <input
-          type="radio"
-          name="role"
-          value="broker"
-          required
-          className="form-radio accent-white"
-        />
-        <span className="font-semibold">Broker</span>
-      </label>
-    </div>
-  </div>
+              <label className="block mb-1 text-sm">Verify Your Password</label>
+              <input 
+                name="confirmPassword"
+                type="password" 
+                required 
+                className="w-full border-b border-white mb-4 bg-transparent py-1 focus:outline-none" 
+              />
 
-  <p className="text-xs mb-4 text-center">
-    By creating an account, you acknowledge our Privacy Policy and Terms of Use.
-  </p>
+              <label className="block mb-1 text-sm">Phone Number</label>
+              <input 
+                name="phone"
+                type="tel" 
+                required 
+                className="w-full border-b border-white mb-6 bg-transparent py-1 focus:outline-none" 
+              />
 
-  <button type="submit" className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100">
-    Sign Up
-  </button>
-</form>
+              {/* Role selection */}
+              <div className="mb-6">
+                <label className="block mb-2 text-sm">Select your role:</label>
+                <div className="flex justify-around">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="role"
+                      value={roletypes.buyer}
+                      required
+                      className="form-radio accent-white"
+                    />
+                    <span className="font-semibold">Buyer</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="role"
+                      value={roletypes.broker}
+                      required
+                      className="form-radio accent-white"
+                    />
+                    <span className="font-semibold">Broker</span>
+                  </label>
+                </div>
+              </div>
 
+              <p className="text-xs mb-4 text-center">
+                By creating an account, you acknowledge our{" "}
+                <Link to="/about" className="underline">
+                  About Us
+                </Link>{" "}
+                and{" "}
+                <Link to="/terms" className="underline">
+                  Terms of Use
+                </Link>
+                .
+              </p>
+
+              <button 
+                type="submit" 
+                className="w-full py-2 bg-white text-[#002349] font-semibold rounded hover:bg-gray-100"
+              >
+                Sign Up
+              </button>
+            </form>
           </div>
         )}
 
