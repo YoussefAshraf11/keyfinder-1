@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaHome } from "react-icons/fa";
 import backgroundImg from "../../assets/Login/login.svg";
+import { validateUserAndSendOtp, validateOtp, resetPasswordOtp } from "../../network/auth";
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1);
@@ -9,29 +10,73 @@ export default function ForgotPassword() {
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
-    // TODO: API to send reset code
-    setStep(2);
+    setError("");
+    try {
+      const response = await validateUserAndSendOtp({ email });
+      if (response.data.success) {
+        localStorage.setItem('resetEmail', email);
+        setStep(2);
+      }
+    } catch (error) {
+      setError("Email not found. Please check your email address and try again.");
+    }
   };
 
   const handleCodeSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Verify code
-    setStep(3);
+    setError("");
+    try {
+      const storedEmail = localStorage.getItem('resetEmail');
+      if (!storedEmail) {
+        setError("Session expired. Please start over.");
+        setStep(1);
+        return;
+      }
+      const response = await validateOtp({
+        email: storedEmail,
+        otp: code
+      });
+      if (response.data.success) {
+        setStep(3);
+      }
+    } catch (error) {
+      setError("Invalid OTP code. Please try again.");
+    }
   };
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
+    setError("");
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match");
       return;
     }
-    // TODO: Change password via API
-    navigate("/login");
+    try {
+      const storedEmail = localStorage.getItem('resetEmail');
+      if (!storedEmail) {
+        setError("Session expired. Please start over.");
+        setStep(1);
+        return;
+      }
+      const response = await resetPasswordOtp({
+        email: storedEmail,
+        otp: code,
+        newPassword: newPassword,
+        confirmNewPassword: confirmPassword
+      });
+      if (response.data.success) {
+        localStorage.removeItem('resetEmail');
+        navigate("/login");
+      }
+    } catch (error) {
+      setError("Failed to reset password. Please try again.");
+    }
   };
 
   return (
@@ -52,9 +97,12 @@ export default function ForgotPassword() {
           <>
             <h2 className="text-2xl font-bold mb-4 text-center">Forgot Password?</h2>
             <p className="text-sm mb-6 text-center">
-              A password reset link will be sent to your email.
+              A password reset code will be sent to your email.
             </p>
             <form onSubmit={handleEmailSubmit}>
+              {error && (
+                <p className="text-yellow-400 text-sm mb-4 text-center">{error}</p>
+              )}
               <label className="block mb-1 text-sm">Email Address</label>
               <input
                 type="email"
@@ -78,6 +126,9 @@ export default function ForgotPassword() {
           <form onSubmit={handleCodeSubmit} className="text-center">
             <h2 className="text-xl font-bold mb-4">Verify Your Code</h2>
             <p className="text-sm mb-4">A code has been sent to your email address</p>
+            {error && (
+              <p className="text-yellow-400 text-sm mb-4 text-center">{error}</p>
+            )}
             <input
               type="text"
               value={code}
@@ -98,6 +149,9 @@ export default function ForgotPassword() {
         {step === 3 && (
           <form onSubmit={handlePasswordChange} className="text-center">
             <h2 className="text-xl font-bold mb-6">Changing Your Password</h2>
+            {error && (
+              <p className="text-yellow-400 text-sm mb-4 text-center">{error}</p>
+            )}
             <div className="text-left mb-3">
               <label className="block mb-1 text-sm">Enter new password</label>
               <input

@@ -28,7 +28,7 @@ export default function Navbar() {
   /* ——— BROKER VIEW ——— */
    const handleLogout = () => {
     localStorage.removeItem("user");
-    navigate("/signup?step=broker");
+    navigate("/login");
     window.location.reload(); // optional: refresh to reset UI state
   };
 if (isBroker) {
