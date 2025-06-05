@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     projects: [],
     properties: [],
+    projectDetails: {},
     loading: false,
     error: null,
 };
@@ -19,6 +20,9 @@ const projectSlice = createSlice({
         state.properties = action.payload;
         state.error = null;
       },
+      setProjectDetails: (state, action) => {
+        state.projectDetails = action.payload;
+      },
       setProjectError: (state, action) => {
         state.error = action.payload;
       },
@@ -32,7 +36,8 @@ const projectSlice = createSlice({
     setProjectsList, 
     setPropertiesList, 
     setProjectError,
-    setLoading 
+    setLoading,
+    setProjectDetails
   } = projectSlice.actions;
   
   export default projectSlice.reducer; 

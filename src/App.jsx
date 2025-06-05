@@ -3,7 +3,7 @@ import Home from "./pages/Home/home.jsx";
 import Login from "./pages/Login/login.jsx";
 import SignUP from "./pages/Signup/signup.jsx";
 import ForgotPassword from "./pages/ForgetPassword/forgetpassword.jsx";
-import ProjectShowcase from "./pages/More Details/moredetailshome.jsx";
+import ProjectShowcase from "./pages/Project Details/moredetailshome.jsx";
 import Layout from "./components/Layout/layout.jsx";
 import AboutUs from "./pages/aboutus/aboutus.jsx";
 import TermsAndConditions from "./pages/TermsAndConditions/TermsAndConditions.jsx";
@@ -31,7 +31,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUP />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/more-details" element={<ProjectShowcase />} />
+          <Route path="/project-details/:id" element={<ProjectShowcase />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/terms" element={<TermsAndConditions />} />
           <Route path="/realstate-projects" element={<ProjectsGrid />} />

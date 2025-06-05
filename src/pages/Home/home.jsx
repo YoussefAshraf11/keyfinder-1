@@ -163,7 +163,7 @@ export default function Home() {
             {projects.map((project) => (
               <div
                 key={project._id}
-                onClick={() => navigate("/more-details")}
+                onClick={() => navigate(`/project-details/${project._id}`)}
                 className="w-full cursor-pointer"
               >
                 <ProjectCard 
