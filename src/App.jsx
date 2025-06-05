@@ -39,7 +39,7 @@ export default function App() {
           <Route path="/map" element={<AlexandriaMap />} />
           <Route path="/listing" element={<PropertyList />} />
           <Route path="/favourites" element={<Favourites />} />
-          <Route path="/unit-details" element={<UnitDetails />} />
+          <Route path="/unit-details/:id" element={<UnitDetails />} />
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/myappointments" element={<MyAppointments />} />
           <Route path="/payment" element={<Payment />} />

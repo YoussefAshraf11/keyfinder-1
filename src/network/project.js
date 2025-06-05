@@ -13,6 +13,8 @@ const updateProject = async (id, payload) => await axiosInstance.put(`/api/proje
 
 const deleteProject = async (id) => await axiosInstance.delete(`/api/projects/${id}`);
 
+const getPropertyById = async (id) => await axiosInstance.get(`/api/projects/property/${id}`);
+
 
 export {
     getProjects,
@@ -20,7 +22,8 @@ export {
     getProperties,
     createProject,
     updateProject,
-    deleteProject
+    deleteProject,
+    getPropertyById
 };
 
 
