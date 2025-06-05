@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import SearchBar from "../../components/Searchbar/searchbar.jsx";
 import { ChevronDown } from "lucide-react";
 import { getProperties } from "../../network/project";
+import { addToFavorites, removeFromFavorites } from "../../network/user";
+import { getLoggedInUser } from "../../network/auth";
 import { setPropertiesList, setLoading, setProjectError } from "../../store/projectSlice";
+import { setCredentials } from "../../store/authSlice";
 import { PROPERTY_TYPES, AREA_RANGES, PRICE_RANGES } from "../../utils/constants";
 import PropertyCardInList from "./PropertyCardInList";
 
 export default function PropertyList() {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const properties = useSelector((state) => state.project.properties);
   const loading = useSelector((state) => state.project.loading);
+  const user = useSelector((state) => state.auth.user);
 
   const [searchValue, setSearchValue] = useState("");
   const [showPropertyType, setShowPropertyType] = useState(false);
@@ -36,7 +38,6 @@ export default function PropertyList() {
         priceRange: selectedPrice || undefined
       });
       dispatch(setPropertiesList(response.data.data.properties));
-      console.log('Properties fetched:', response.data.data.properties);
     } catch (error) {
       dispatch(setProjectError(error.message));
       console.error('Error fetching properties:', error);
@@ -49,12 +50,6 @@ export default function PropertyList() {
     fetchProperties();
   }, [dispatch,searchValue,selectedProperty,selectedArea,selectedPrice]);
 
-
-
-  useEffect(() => {
-    console.log('selectedArea', selectedArea);
-  }, [selectedArea]);
-
   const toggle = (dropdown) => {
     setShowPropertyType(dropdown === "property");
     setShowArea(dropdown === "area");
@@ -65,22 +60,26 @@ export default function PropertyList() {
   const areaOptions = Object.keys(AREA_RANGES).filter(key => key !== 'all');
   const priceOptions = Object.keys(PRICE_RANGES).filter(key => key !== 'all');
 
-  /* ─ favourites state ─ */
-  const [favIds, setFavIds] = useState(() =>
-    JSON.parse(localStorage.getItem("favourites") || "[]")
-  );
-
-  /* keep localStorage in-sync */
-  useEffect(() => {
-    localStorage.setItem("favourites", JSON.stringify(favIds));
-  }, [favIds]);
-
-  const toggleFav = (id) => {
-    setFavIds((prev) =>
-      prev.includes(id) ? prev.filter((n) => n !== id) : [...prev, id]
-    );
-    /* redirect */
-    navigate("/favourites");
+  const toggleFav = async (propertyId) => {
+    try {
+      if (user?.favourites?.some(fav => fav.property === propertyId)) {
+        await removeFromFavorites({ propertyId });
+      } else {
+        await addToFavorites({ propertyId });
+      }
+      
+      // Get updated user data after toggling favorite
+      const response = await getLoggedInUser();
+      if (response.data.success) {
+        // Update user data in Redux store
+        dispatch(setCredentials({
+          user: response.data.data.user,
+          token: localStorage.getItem('token') // Keep existing token
+        }));
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
   };
 
   const handleImageError = (propertyId) => {
@@ -239,7 +238,7 @@ export default function PropertyList() {
             <PropertyCardInList
               key={property._id}
               property={property}
-              isFavorite={favIds.includes(property._id)}
+              isFavorite={user?.favourites?.some(fav => fav.property === property._id)}
               onToggleFavorite={toggleFav}
               hasImageError={imageErrors[property._id]}
               onImageError={handleImageError}

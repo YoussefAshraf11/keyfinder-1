@@ -1,14 +1,25 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function PropertyCard({ img, name }) {
+export default function PropertyCard({ img, name, id }) {
   const [imageError, setImageError] = useState(!img);
+  const navigate = useNavigate();
 
   const handleImageError = () => {
     setImageError(true);
   };
 
+  const handleClick = () => {
+    if (id) {
+      navigate(`/unit-details/${id}`);
+    }
+  };
+
   return (
-    <div className="w-full max-w-[10.5rem] sm:max-w-[12rem] text-center">
+    <div 
+      className="w-full max-w-[10.5rem] sm:max-w-[12rem] text-center cursor-pointer hover:opacity-90 transition-opacity"
+      onClick={handleClick}
+    >
       {/* ↑ 168 px on mobile, 192 px on ≥640 px screens */}
 
       {imageError ? (

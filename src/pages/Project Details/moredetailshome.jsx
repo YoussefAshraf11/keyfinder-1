@@ -139,6 +139,7 @@ export default function ProjectShowcase() {
                     <PropertyCard 
                       name={property.title}
                       img={property.images?.[0] || ''}
+                      id={property._id}
                     />
                   </div>
         ))}
