@@ -4,10 +4,13 @@ const addToFavorites = async (payload) => await axiosInstance.post(`/api/users/$
 
 const removeFromFavorites = async (payload) => await axiosInstance.delete(`/api/users/${payload.propertyId}/remove-from-favorites`, payload);
 
+const getUserFavorites = async () => await axiosInstance.get('/api/users/favorites');
+
 
 export {
     addToFavorites,
-    removeFromFavorites
+    removeFromFavorites,
+    getUserFavorites
 };
 
 
