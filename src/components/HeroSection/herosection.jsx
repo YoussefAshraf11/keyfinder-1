@@ -45,95 +45,97 @@ export default function HeroSection() {
           The Simplest <br /> Way to Find Property
         </h1>
 
-        <SearchBar
+        {/* <SearchBar
           placeholder="Search Properties…"
           inputClassName="bg-white text-gray-700 placeholder-gray-400"
           buttonClassName="bg-primary hover:bg-accent/90"
           iconClassName="h-5 w-5"
-        />
+        /> */}
 
-        <div className="mt-4 flex flex-wrap justify-center gap-3 relative">
-          {/* Property Type */}
-          <div className="relative">
-            <button
-              onClick={() => toggle("property")}
-              className="inline-flex items-center bg-white px-5 py-2 rounded-full text-sm text-[#042987] font-semibold"
-            >
-              {selectedProperty}
-              <ChevronDown className="ml-2 h-4 w-4" />
-            </button>
-            {showPropertyType && (
-              <ul className="absolute mt-2 w-48 bg-white text-[#042987] rounded shadow z-20 text-sm text-left">
-                {propertyTypes.map((item) => (
-                  <li
-                    key={item}
-                    onClick={() => {
-                      setSelectedProperty(item);
-                      setShowPropertyType(false);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+        
+      </div>
 
-          {/* Area */}
-          <div className="relative">
-            <button
-              onClick={() => toggle("area")}
-              className="inline-flex items-center bg-white px-5 py-2 rounded-full text-sm text-[#042987] font-semibold"
-            >
-              {selectedArea}
-              <ChevronDown className="ml-2 h-4 w-4" />
-            </button>
-            {showArea && (
-              <ul className="absolute mt-2 w-56 bg-white text-[#042987] rounded shadow z-20 text-sm text-left">
-                {areaOptions.map((item) => (
-                  <li
-                    key={item}
-                    onClick={() => {
-                      setSelectedArea(item);
-                      setShowArea(false);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+      <div className="mt-4 flex flex-wrap justify-center gap-3 relative">
+        {/* Property Type */}
+        {/* <div className="relative">
+          <button
+            onClick={() => toggle("property")}
+            className="inline-flex items-center bg-white px-5 py-2 rounded-full text-sm text-[#042987] font-semibold"
+          >
+            {selectedProperty}
+            <ChevronDown className="ml-2 h-4 w-4" />
+          </button>
+          {showPropertyType && (
+            <ul className="absolute mt-2 w-48 bg-white text-[#042987] rounded shadow z-20 text-sm text-left">
+              {propertyTypes.map((item) => (
+                <li
+                  key={item}
+                  onClick={() => {
+                    setSelectedProperty(item);
+                    setShowPropertyType(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div> */}
 
-          {/* Average Price */}
-          <div className="relative">
-            <button
-              onClick={() => toggle("price")}
-              className="inline-flex items-center bg-white px-5 py-2 rounded-full text-sm text-[#042987] font-semibold"
-            >
-              {selectedPrice}
-              <ChevronDown className="ml-2 h-4 w-4" />
-            </button>
-            {showPrice && (
-              <ul className="absolute mt-2 w-52 bg-white text-[#042987] rounded shadow z-20 text-sm text-left">
-                {priceOptions.map((item) => (
-                  <li
-                    key={item}
-                    onClick={() => {
-                      setSelectedPrice(item);
-                      setShowPrice(false);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
+        {/* Area */}
+        {/* <div className="relative">
+          <button
+            onClick={() => toggle("area")}
+            className="inline-flex items-center bg-white px-5 py-2 rounded-full text-sm text-[#042987] font-semibold"
+          >
+            {selectedArea}
+            <ChevronDown className="ml-2 h-4 w-4" />
+          </button>
+          {showArea && (
+            <ul className="absolute mt-2 w-56 bg-white text-[#042987] rounded shadow z-20 text-sm text-left">
+              {areaOptions.map((item) => (
+                <li
+                  key={item}
+                  onClick={() => {
+                    setSelectedArea(item);
+                    setShowArea(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div> */}
+
+        {/* Average Price */}
+        {/* <div className="relative">
+          <button
+            onClick={() => toggle("price")}
+            className="inline-flex items-center bg-white px-5 py-2 rounded-full text-sm text-[#042987] font-semibold"
+          >
+            {selectedPrice}
+            <ChevronDown className="ml-2 h-4 w-4" />
+          </button>
+          {showPrice && (
+            <ul className="absolute mt-2 w-52 bg-white text-[#042987] rounded shadow z-20 text-sm text-left">
+              {priceOptions.map((item) => (
+                <li
+                  key={item}
+                  onClick={() => {
+                    setSelectedPrice(item);
+                    setShowPrice(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div> */}
       </div>
     </section>
   );
