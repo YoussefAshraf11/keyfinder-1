@@ -218,7 +218,7 @@ export default function UnitDetails() {
       <div className="flex justify-center md:justify-end">
         <button
           onClick={() =>
-            navigate("/schedule", {
+            navigate(`/schedule/${id}`, {
               state: {
                 img: hero,
                 property,

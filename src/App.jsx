@@ -40,7 +40,7 @@ export default function App() {
           <Route path="/listing" element={<PropertyList />} />
           <Route path="/favourites" element={<Favourites />} />
           <Route path="/unit-details/:id" element={<UnitDetails />} />
-          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/schedule/:id" element={<Schedule />} />
           <Route path="/myappointments" element={<MyAppointments />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/profile" element={<Profile />} />
