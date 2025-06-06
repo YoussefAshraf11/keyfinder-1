@@ -5,4 +5,16 @@ const createAppointment = async (payload) => await axiosInstance.post('/api/appo
 
 const getMyAppointments = async () => await axiosInstance.get('/api/appointments/my-appointments');
 
-export { createAppointment, getMyAppointments };
+const deleteAppointment = async (id) => await axiosInstance.delete(`/api/appointments/${id}`);
+
+const updateAppointment = async (id, payload) => await axiosInstance.patch(`/api/appointments/${id}`, payload);
+
+// const addFeedback = async (id, payload) => await axiosInstance.post(`/api/appointments/${id}/feedback`, payload);
+
+export {
+     createAppointment,
+     getMyAppointments,
+      deleteAppointment,
+      updateAppointment
+    //    addFeedback 
+    };

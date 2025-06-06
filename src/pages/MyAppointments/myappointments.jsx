@@ -5,7 +5,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
-import { getMyAppointments } from "../../network/appointment";
+import { getMyAppointments, deleteAppointment } from "../../network/appointment";
+
+const formatAppointmentType = (type) => {
+  switch (type) {
+    case 'initial':
+      return 'Initial';
+    case 'payment':
+      return 'Payment';
+    default:
+      return type;
+  }
+};
 
 export default function MyAppointments() {
   const [appointments, setAppointments] = useState([]);
@@ -13,25 +24,25 @@ export default function MyAppointments() {
   const [failedImages, setFailedImages] = useState(new Set());
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        const response = await getMyAppointments();
-        console.log("Appointments:", response.data.data);
-        setAppointments(response.data.data);
-      } catch (error) {
-        console.error("Error fetching appointments:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Failed to load appointments",
-          confirmButtonColor: "#002855",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchAppointments = async () => {
+    try {
+      const response = await getMyAppointments();
+      console.log("Appointments:", response.data.data);
+      setAppointments(response.data.data);
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to load appointments",
+        confirmButtonColor: "#002855",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAppointments();
   }, []);
 
@@ -46,7 +57,15 @@ export default function MyAppointments() {
       confirmButtonText: "Yes, cancel it!",
     }).then((result) => {
       if (result.isConfirmed) {
-
+        deleteAppointment(id)
+          .then(() => {
+            fetchAppointments();
+          })
+          .catch((err) => {
+            console.error("Error deleting appointment:", err);
+            Swal.fire("Error!", "Failed to delete appointment", "error");
+          });
+        
         Swal.fire(
           "Cancelled!",
           "Your appointment has been cancelled.",
@@ -110,6 +129,10 @@ export default function MyAppointments() {
                     {a.property?.title || "Unknown"}
                   </p>
                   <p>
+                    <span className="font-semibold">Type:</span>{" "}
+                    {formatAppointmentType(a.type)}
+                  </p>
+                  <p>
                     <span className="font-semibold">Date:</span>{" "}
                     {new Date(a.appointmentDate).toLocaleDateString()}
                   </p>
@@ -133,7 +156,7 @@ export default function MyAppointments() {
                 </button>
                 {a.status === 'scheduled' && (
                   <button
-                    onClick={() => navigate("/payment", { state: a })}
+                    onClick={() => navigate(`/payment/${a._id}`, { state: a })}
                     className="rounded-xl bg-white text-[#002855] px-6 py-2 font-bold"
                   >
                     Continue With Payment

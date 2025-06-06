@@ -42,7 +42,7 @@ export default function App() {
           <Route path="/unit-details/:id" element={<UnitDetails />} />
           <Route path="/schedule/:id" element={<Schedule />} />
           <Route path="/myappointments" element={<MyAppointments />} />
-          <Route path="/payment" element={<Payment />} />
+          <Route path="/payment/:id" element={<Payment />} />
           <Route path="/profile" element={<Profile />} />
           {/* Broker routes */}
           <Route path="/broker-home" element={<BrokerHomePage />} />
