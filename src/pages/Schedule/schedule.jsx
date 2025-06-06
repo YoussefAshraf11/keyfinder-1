@@ -11,10 +11,6 @@ import { getPropertyById } from "../../network/project";
 import { PROPERTY_TYPES, AREA_RANGES, PRICE_RANGES, PROPERTY_STATUS } from "../../utils/constants";
 /* ——— images ——— */
 import cover from "../../assets/Schedule/cover.svg";
-import fake1 from "../../assets/Schedule/fake 1.svg";
-import fake2 from "../../assets/Schedule/fake 2.svg";
-import fake3 from "../../assets/Schedule/fake 3.svg";
-import fake5 from "../../assets/Schedule/fake 5.svg";
 import BrokerCard from "./BrokerCard";
 import { useDispatch, useSelector } from "react-redux";
 import { setBrokers } from "../../store/usersSlice";
@@ -40,6 +36,7 @@ export default function Schedule() {
   // Redux
   const dispatch = useDispatch();
   const brokers = useSelector((state) => state.users.brokers);
+  const loggedInUser = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     const fetchBrokers = async () => {
@@ -96,29 +93,33 @@ export default function Schedule() {
     });
   };
 
+
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const appointment = {
-      id: Date.now(),
-      img: selectedImg,
-      broker: selectedBroker.name,
-      at: date,
-      location: "Alexandria",
-      time: time,
-      type: "Apartments",
-      area: "120 sqm",
-      bedrooms: 3,
-      bathrooms: 2,
-      price: "$150 000",
-    };
+    // Combine date and time into ISO string
+    let combinedDateTime = null;
+    if (date && time) {
+      let [hourStr, minStr] = time.split(":");
+      let [minutes, ampm] = minStr.split(" ");
+      let hour = parseInt(hourStr, 10);
+      if (ampm === "PM" && hour !== 12) hour += 12;
+      if (ampm === "AM" && hour === 12) hour = 0;
+      const iso = new Date(date);
+      iso.setHours(hour, 0, 0, 0);
+      combinedDateTime = iso.toISOString();
+    }
+    // Log property._id, buyer, selected broker, and combined datetime
+    console.log("property._id:", property?._id);
+    console.log("buyer id:", loggedInUser.id);
+    console.log("selected broker:", selectedBroker._id);
+    console.log("combined datetime (ISO):", combinedDateTime);
 
-    const prev = JSON.parse(localStorage.getItem("appointments") || "[]");
-    const updated = [...prev, appointment];
-    localStorage.setItem("appointments", JSON.stringify(updated));
 
-    navigate("/myappointments");
+    // navigate("/myappointments");
   };
+
 
   return (
     <form
