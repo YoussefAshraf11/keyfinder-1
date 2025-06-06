@@ -43,17 +43,6 @@ export default function SignIn() {
         token: token
       }));
 
-      // Always store token in localStorage
-      localStorage.setItem("token", token);
-
-      // Store user data in localStorage if keepSignedIn is true
-      if (keepSignedIn) {
-        localStorage.setItem("user", JSON.stringify({
-          ...userData.data.user,
-          role: userRole
-        }));
-      }
-
       if (userRole === roletypes.admin) {
         console.log("Admin logged in");
       } else if (userRole === roletypes.broker) {
@@ -141,7 +130,7 @@ export default function SignIn() {
           />
 
           <div className="flex items-center justify-between mb-4 text-sm">
-            <label className="inline-flex items-center">
+            {/* <label className="inline-flex items-center">
               <input
                 type="checkbox"
                 checked={keepSignedIn}
@@ -149,7 +138,7 @@ export default function SignIn() {
                 className="form-checkbox h-4 w-4 text-white"
               />
               <span className="ml-2">Keep Me Signed In</span>
-            </label>
+            </label> */}
             <Link
               to="/forgot-password"
               className="underline hover:text-gray-300"

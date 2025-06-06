@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import { useLocation } from "react-router-dom";
 import { getPropertyById } from "../../network/project";
+import { createAppointment } from "../../network/appointment";
 import { PROPERTY_TYPES, AREA_RANGES, PRICE_RANGES, PROPERTY_STATUS } from "../../utils/constants";
 /* ——— images ——— */
 import cover from "../../assets/Schedule/cover.svg";
@@ -95,11 +96,11 @@ export default function Schedule() {
 
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Combine date and time into ISO string
-    let combinedDateTime = null;
+    let appointmentDate = null;
     if (date && time) {
       let [hourStr, minStr] = time.split(":");
       let [minutes, ampm] = minStr.split(" ");
@@ -108,16 +109,39 @@ export default function Schedule() {
       if (ampm === "AM" && hour === 12) hour = 0;
       const iso = new Date(date);
       iso.setHours(hour, 0, 0, 0);
-      combinedDateTime = iso.toISOString();
+      appointmentDate = iso.toISOString();
     }
-    // Log property._id, buyer, selected broker, and combined datetime
-    console.log("property._id:", property?._id);
-    console.log("buyer id:", loggedInUser.id);
-    console.log("selected broker:", selectedBroker._id);
-    console.log("combined datetime (ISO):", combinedDateTime);
 
+    try {
+      const payload = {
+        buyerId: loggedInUser.id,
+        brokerId: selectedBroker._id,
+        propertyId: property._id,
+        appointmentDate: appointmentDate,
+        type: "initial"
+      };
 
-    // navigate("/myappointments");
+      const response = await createAppointment(payload);
+      
+      if (response.data) {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "Appointment scheduled successfully",
+          confirmButtonColor: "#002855",
+        }).then(() => {
+          navigate("/myappointments");
+        });
+      }
+    } catch (error) {
+      console.log("error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.response?.data?.error?.message || "Failed to schedule appointment",
+        confirmButtonColor: "#002855",
+      });
+    }
   };
 
 

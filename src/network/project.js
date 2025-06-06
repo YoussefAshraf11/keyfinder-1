@@ -16,6 +16,7 @@ const deleteProject = async (id) => await axiosInstance.delete(`/api/projects/${
 const getPropertyById = async (id) => await axiosInstance.get(`/api/projects/property/${id}`);
 
 
+
 export {
     getProjects,
     getProjectById,
