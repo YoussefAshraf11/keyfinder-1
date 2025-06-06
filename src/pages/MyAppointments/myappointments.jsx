@@ -70,7 +70,7 @@ export default function MyAppointments() {
 
   return (
     <section className="container mx-auto px-4 py-10 max-w-6xl">
-      {appointments.length === 0 ? (
+      {appointments?.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <h1 className="text-[#002349] font-bold text-xl mb-2 text-center">
             My Appointments
@@ -79,7 +79,7 @@ export default function MyAppointments() {
         </div>
       ) : (
         <div className="space-y-6">
-          {appointments.map((a) => (
+          {appointments?.map((a) => (
             <div
               key={a._id}
               className="bg-[#002349] text-white rounded-xl p-4 flex flex-col gap-4"
