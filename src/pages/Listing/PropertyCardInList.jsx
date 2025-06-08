@@ -77,12 +77,14 @@ export default function PropertyCardInList({
           </ul>
         </div>
 
-        <button
-          className="self-end mt-4 bg-white text-[#002349] text-xs font-semibold rounded-[4px] px-6 py-[4px]"
-          onClick={() => navigate(`/unit-details/${property._id}`)}
-        >
-          select
-        </button>
+        {property.status !== 'reserved' && property.status !== 'sold' && (
+          <button
+            className="self-end mt-4 bg-white text-[#002349] text-xs font-semibold rounded-[4px] px-6 py-[4px]"
+            onClick={() => navigate(`/unit-details/${property._id}`)}
+          >
+            select
+          </button>
+        )}
       </div>
     </article>
   );

@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Pencil, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { setCredentials } from "../../store/authSlice";
+import { updateLoggedInUser } from "../../network/auth";
+import Swal from "sweetalert2";
 
 /* images ----------------------------------------------------------- */
 import bgCover from "../../assets/Profile/cover.svg";
@@ -51,27 +55,83 @@ function Field({ label, value, onSave, type = "text", mask = false }) {
 /* -------------------------------------------------- */
 export default function Profile() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const authUser = useSelector((state) => state.auth.user);
 
   const [user, setUser] = useState({
-    username: "Ahmad Khatab22",
-    email: "user123@no1.com",
-    password: "myPassword!",
-    phone: "01•••••••••",
-    country: "Egypt",
+    username: "",
+    email: "",
+    password: "",
+    phone: "",
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (authUser) {
+      setUser({
+        username: authUser.username || "",
+        email: authUser.email || "",
+        password: "", // Don't show actual password
+        phone: authUser.phone || "",
+      });
+    }
+  }, [authUser]);
+
   const update = (k) => (val) => setUser((u) => ({ ...u, [k]: val }));
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const response = await updateLoggedInUser({
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+        currentPassword: user.password, // Only if password is being changed
+        newPassword: user.password, // Only if password is being changed
+        confirmNewPassword: user.password, // Only if password is being changed
+      });
+
+      if (response.data.success) {
+        // Update Redux store with new user data
+        dispatch(setCredentials({
+          user: response.data.data.user,
+          token: localStorage.getItem('token')
+        }));
+
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "Profile updated successfully",
+          confirmButtonColor: "#002855",
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.response?.data?.message || "Failed to update profile",
+        confirmButtonColor: "#002855",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleLogout = () => {
     // Remove user data from localStorage
     localStorage.removeItem("user");
-    // localStorage.removeItem("role");
-    // OR if saved as one object like "user":
-    // localStorage.removeItem("user");
-
-    // Optionally redirect or reload:
-    navigate("/login"); // or login page
+    localStorage.removeItem("token");
+    navigate("/login");
   };
+
+  if (!authUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-[#002349] text-xl">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <section
@@ -104,17 +164,27 @@ export default function Profile() {
             mask
           />
           <Field label="Phone" value={user.phone} onSave={update("phone")} />
-          
         </div>
 
-        {/* Logout button */}
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 bg-white text-[#002349] font-medium py-2 rounded hover:bg-gray-100 transition"
-        >
-          <LogOut size={18} />
-          Logout
-        </button>
+        <div className="space-y-4">
+          {/* Save Changes button */}
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-2 bg-white text-[#002349] font-medium py-2 rounded hover:bg-gray-100 transition disabled:opacity-50"
+          >
+            {isSubmitting ? "Saving..." : "Save Changes"}
+          </button>
+
+          {/* Logout button */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 bg-white text-[#002349] font-medium py-2 rounded hover:bg-gray-100 transition"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+        </div>
       </div>
     </section>
   );

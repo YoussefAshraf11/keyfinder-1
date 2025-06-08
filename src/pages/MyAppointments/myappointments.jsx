@@ -154,12 +154,20 @@ export default function MyAppointments() {
                 >
                   Cancel
                 </button>
-                {a.status === 'scheduled' && (
+                {a.status === 'awaiting_payment' && (
                   <button
                     onClick={() => navigate(`/payment/${a._id}`, { state: a })}
                     className="rounded-xl bg-white text-[#002855] px-6 py-2 font-bold"
                   >
                     Continue With Payment
+                  </button>
+                )}
+                {(a.status === 'scheduled' || a.status === 'awaiting_payment_confirmation') && (
+                  <button
+                    disabled
+                    className="rounded-xl bg-gray-400 text-white px-6 py-2 font-bold cursor-not-allowed"
+                  >
+                    Waiting Broker Confirmation
                   </button>
                 )}
               </div>

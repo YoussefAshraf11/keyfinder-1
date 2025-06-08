@@ -68,7 +68,8 @@ export default function Payment() {
     try {
       const response = await updateAppointment(appointmentId, {
         appointmentDate,
-        type: "payment"
+        type: "payment",
+        status: "awaiting_payment_confirmation"
       });
       
       if (response.data) {
