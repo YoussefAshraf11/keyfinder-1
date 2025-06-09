@@ -45,8 +45,11 @@ export default function ProjectShowcase() {
 
   if (loading) {
     return (
-      <div className="w-full py-10 px-4 sm:px-6 md:px-8 lg:px-0 flex justify-center items-center">
-        <div className="text-xl text-[#002855]">Loading project details...</div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#002349] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading project details...</p>
+        </div>
       </div>
     );
   }
