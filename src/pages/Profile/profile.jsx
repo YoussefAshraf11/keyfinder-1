@@ -92,35 +92,34 @@ export default function Profile() {
         payload.confirmNewPassword = formData.confirmNewPassword;
       }
 
+
       const response = await updateLoggedInUser(payload);
 
-      console.log(response)
 
+      // Only update the UI if the update was successful
+      if (response.data.success) {
+        // Update Redux store with new user data
+        dispatch(setCredentials({
+          user: response.data.data.user,
+          token: localStorage.getItem('token')
+        }));
 
-      // // Only update the UI if the update was successful
-      // if (response.data.success) {
-      //   // Update Redux store with new user data
-      //   dispatch(setCredentials({
-      //     user: response.data.data.user,
-      //     token: localStorage.getItem('token')
-      //   }));
+        // Show success message
+        await Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "Profile updated successfully",
+          confirmButtonColor: "#002855",
+        });
 
-      //   // Show success message
-      //   await Swal.fire({
-      //     icon: "success",
-      //     title: "Success!",
-      //     text: "Profile updated successfully",
-      //     confirmButtonColor: "#002855",
-      //   });
-
-      //   // Reset password fields after successful update
-      //   setFormData(prev => ({
-      //     ...prev,
-      //     currentPassword: "",
-      //     newPassword: "",
-      //     confirmNewPassword: ""
-      //   }));
-      // }
+        // Reset password fields after successful update
+        setFormData(prev => ({
+          ...prev,
+          currentPassword: "",
+          newPassword: "",
+          confirmNewPassword: ""
+        }));
+      }
     } catch (error) {
       // Only show error message, don't modify any state
       await Swal.fire({
