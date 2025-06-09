@@ -1,116 +1,132 @@
 import { useState, useEffect } from "react";
-import { Pencil, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { setCredentials } from "../../store/authSlice";
 import { updateLoggedInUser } from "../../network/auth";
 import Swal from "sweetalert2";
 
-/* images ----------------------------------------------------------- */
+// Images
 import bgCover from "../../assets/Profile/cover.svg";
-import avatarImg from "../../assets/Profile/Youssef Ashraf.svg";
 
-/* -------------------------------------------------- */
-/* helper: editable row                               */
-/* -------------------------------------------------- */
-function Field({ label, value, onSave, type = "text", mask = false }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
+// Form Input Component
+const InputField = ({ 
+  label, 
+  type = "text", 
+  value, 
+  name,
+  onChange,
+  placeholder = "" 
+}) => (
+  <div className="mb-4">
+    <label className="block text-white text-sm font-medium mb-1">
+      {label}
+    </label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="w-full px-3 py-2 bg-white/90 text-[#002349] rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  </div>
+);
 
-  return (
-    <div className="grid grid-cols-[110px_1fr_24px] items-center gap-2">
-      <span className="text-white font-medium text-sm">{label}</span>
-
-      {editing ? (
-        <input
-          autoFocus
-          type={type}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => {
-            setEditing(false);
-            onSave(draft);
-          }}
-          className="w-full rounded bg-white/90 text-[#002349] text-sm px-3 py-1 outline-none"
-        />
-      ) : (
-        <span className="inline-block w-full bg-white text-[#002349] text-center text-sm rounded px-3 py-1">
-          {mask ? "•".repeat(Math.max(value.length, 8)) : value}
-        </span>
-      )}
-
-      <button
-        onClick={() => setEditing(true)}
-        className="text-white hover:opacity-80"
-        aria-label={`edit ${label}`}
-      >
-        <Pencil size={16} />
-      </button>
-    </div>
-  );
-}
-
-/* -------------------------------------------------- */
-/* main profile component                             */
-/* -------------------------------------------------- */
 export default function Profile() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const authUser = useSelector((state) => state.auth.user);
 
-  const [user, setUser] = useState({
+  const [formData, setFormData] = useState({
     username: "",
     email: "",
-    password: "",
     phone: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmNewPassword: ""
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Initialize form with user data
   useEffect(() => {
     if (authUser) {
-      setUser({
+      setFormData({
         username: authUser.username || "",
         email: authUser.email || "",
-        password: "", // Don't show actual password
         phone: authUser.phone || "",
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: ""
       });
     }
   }, [authUser]);
 
-  const update = (k) => (val) => setUser((u) => ({ ...u, [k]: val }));
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Log form data before submission
+    console.log("Form data before submission:", formData);
+    
     setIsSubmitting(true);
     try {
-      const response = await updateLoggedInUser({
-        username: user.username,
-        email: user.email,
-        phone: user.phone,
-        currentPassword: user.password, // Only if password is being changed
-        newPassword: user.password, // Only if password is being changed
-        confirmNewPassword: user.password, // Only if password is being changed
-      });
+      const payload = {
+        username: formData.username,
+        email: formData.email,
+        phone: formData.phone
+      };
 
-      if (response.data.success) {
-        // Update Redux store with new user data
-        dispatch(setCredentials({
-          user: response.data.data.user,
-          token: localStorage.getItem('token')
-        }));
-
-        Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: "Profile updated successfully",
-          confirmButtonColor: "#002855",
-        });
+      // Only include password fields if any password field is filled
+      if (formData.currentPassword || formData.newPassword || formData.confirmNewPassword) {
+        payload.currentPassword = formData.currentPassword;
+        payload.newPassword = formData.newPassword;
+        payload.confirmNewPassword = formData.confirmNewPassword;
       }
+
+      const response = await updateLoggedInUser(payload);
+
+      console.log(response)
+
+
+      // // Only update the UI if the update was successful
+      // if (response.data.success) {
+      //   // Update Redux store with new user data
+      //   dispatch(setCredentials({
+      //     user: response.data.data.user,
+      //     token: localStorage.getItem('token')
+      //   }));
+
+      //   // Show success message
+      //   await Swal.fire({
+      //     icon: "success",
+      //     title: "Success!",
+      //     text: "Profile updated successfully",
+      //     confirmButtonColor: "#002855",
+      //   });
+
+      //   // Reset password fields after successful update
+      //   setFormData(prev => ({
+      //     ...prev,
+      //     currentPassword: "",
+      //     newPassword: "",
+      //     confirmNewPassword: ""
+      //   }));
+      // }
     } catch (error) {
-      Swal.fire({
+      // Only show error message, don't modify any state
+      await Swal.fire({
         icon: "error",
         title: "Error",
-        text: error.response?.data?.message || "Failed to update profile",
+        text: error.response?.data?.message || "Failed to update profile. Please try again.",
         confirmButtonColor: "#002855",
       });
     } finally {
@@ -119,7 +135,6 @@ export default function Profile() {
   };
 
   const handleLogout = () => {
-    // Remove user data from localStorage
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     navigate("/login");
@@ -134,57 +149,92 @@ export default function Profile() {
   }
 
   return (
-    <section
+    <section 
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: `url(${bgCover})` }}
     >
-      <div className="relative w-[340px] sm:w-[420px] bg-[#002349] rounded-xl p-8 shadow-xl">
-        <img
-          src={avatarImg}
-          alt="Profile"
-          className="absolute -top-6 right-6 w-20 h-20 object-cover rounded-full border-4 border-white"
-        />
-
+      <div className="w-full max-w-md bg-[#002349] rounded-xl p-8 shadow-xl">
         <h2 className="text-white text-2xl font-bold text-center mb-6">
-          User Profile
+          Edit Profile
         </h2>
-
-        <div className="space-y-4 mb-8">
-          <Field label="UserName:" value={user.username} onSave={update("username")} />
-          <Field
-            label="Email:"
-            value={user.email}
-            onSave={update("email")}
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <InputField
+            label="Username"
+            name="username"
+            value={formData.username}
+            onChange={handleInputChange}
+            placeholder="Enter your username"
+          />
+          
+          <InputField
+            label="Email"
             type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            placeholder="Enter your email"
           />
-          <Field
-            label="Password:"
-            value={user.password}
-            onSave={update("password")}
-            mask
+          
+          <InputField
+            label="Phone"
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleInputChange}
+            placeholder="Enter your phone number"
           />
-          <Field label="Phone" value={user.phone} onSave={update("phone")} />
-        </div>
-
-        <div className="space-y-4">
-          {/* Save Changes button */}
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="w-full flex items-center justify-center gap-2 bg-white text-[#002349] font-medium py-2 rounded hover:bg-gray-100 transition disabled:opacity-50"
-          >
-            {isSubmitting ? "Saving..." : "Save Changes"}
-          </button>
-
-          {/* Logout button */}
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 bg-white text-[#002349] font-medium py-2 rounded hover:bg-gray-100 transition"
-          >
-            <LogOut size={18} />
-            Logout
-          </button>
-        </div>
+          
+          <div className="pt-2 border-t border-white/20 mt-6">
+            <h3 className="text-white font-medium mb-4">Change Password</h3>
+            
+            <InputField
+              label="Current Password"
+              type="password"
+              name="currentPassword"
+              value={formData.currentPassword}
+              onChange={handleInputChange}
+              placeholder="Enter current password"
+            />
+            
+            <InputField
+              label="New Password"
+              type="password"
+              name="newPassword"
+              value={formData.newPassword}
+              onChange={handleInputChange}
+              placeholder="Enter new password"
+            />
+            
+            <InputField
+              label="Confirm New Password"
+              type="password"
+              name="confirmNewPassword"
+              value={formData.confirmNewPassword}
+              onChange={handleInputChange}
+              placeholder="Confirm new password"
+            />
+          </div>
+          
+          <div className="pt-4 space-y-3">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-white text-[#002349] font-medium py-2 px-4 rounded hover:bg-gray-100 transition disabled:opacity-50"
+            >
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
+            </button>
+            
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 text-white font-medium py-2 px-4 rounded hover:bg-white/10 transition"
+            >
+              <LogOut size={18} />
+              Logout
+            </button>
+          </div>
+        </form>
       </div>
     </section>
   );
