@@ -81,8 +81,11 @@ export default function MyAppointments() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <p className="text-[#002349] text-xl">Loading appointments...</p>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#002349] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading appointments...</p>
+        </div>
       </div>
     );
   }
@@ -148,12 +151,14 @@ export default function MyAppointments() {
               </div>
 
               <div className="flex justify-end gap-4">
-                <button
-                  onClick={() => handleCancel(a._id)}
-                  className="rounded-xl bg-white text-[#002855] px-6 py-2 font-bold"
-                >
-                  Cancel
-                </button>
+                {a.status !== 'completed' && (
+                  <button
+                    onClick={() => handleCancel(a._id)}
+                    className="rounded-xl bg-white text-[#002855] px-6 py-2 font-bold"
+                  >
+                    Cancel
+                  </button>
+                )}
                 {a.status === 'awaiting_payment' && (
                   <button
                     onClick={() => navigate(`/payment/${a._id}`, { state: a })}

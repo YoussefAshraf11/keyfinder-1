@@ -224,9 +224,12 @@ export default function PropertyList() {
         </div>
       </div>
 
-      {loading ?(
-        <div className="w-full py-10 px-4 sm:px-6 md:px-8 lg:px-0 flex justify-center items-center">
-          <div className="text-xl text-[#002855]">Loading properties...</div>
+      {loading ? (
+        <div className="min-h-[60vh] flex items-center justify-center bg-white">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#002349] mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading properties...</p>
+          </div>
         </div>
       ): properties.length === 0 ? (
         <div className="w-full py-10 px-4 sm:px-6 md:px-8 lg:px-0 flex justify-center items-center">

@@ -63,13 +63,12 @@ export default function Favourites() {
 
   if (loading) {
     return (
-      <section className="bg-white pt-8 pb-14 px-4 md:px-8 max-w-5xl mx-auto min-h-[40vh]">
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <h1 className="text-[#002349] font-bold text-xl mb-2 text-center">
-            Loading favorites...
-          </h1>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#002349] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading favorites...</p>
         </div>
-      </section>
+      </div>
     );
   }
 
