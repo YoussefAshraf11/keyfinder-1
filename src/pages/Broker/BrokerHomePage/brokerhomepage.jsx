@@ -25,7 +25,14 @@ export default function BrokerHomePage() {
     try {
       const response = await getMyAppointments();
       console.log("Broker Appointments:", response.data.data);
-      setAppointments(response.data.data);
+      
+      // Filter appointments to show only 'scheduled' or 'awaiting_payment' statuses
+      const filteredAppointments = response.data.data.filter(appointment => 
+        appointment.status === 'scheduled' || appointment.status === 'awaiting_payment'
+      );
+      
+      console.log("Filtered Appointments:", filteredAppointments);
+      setAppointments(filteredAppointments);
     } catch (error) {
       console.error("Error fetching appointments:", error);
       Swal.fire({
@@ -118,27 +125,35 @@ export default function BrokerHomePage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 flex flex-wrap gap-4">
-                    <button
-                      onClick={() => {
-                        navigate(`/broker/appointments/${appointment._id}`, {
-                          state: { appointment },
-                        });
-                      }}
-                      className="bg-white text-[#002349] px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-                    >
-                      View Details
-                    </button>
-                    
-                    {appointment.status === 'awaiting_payment_confirmation' && (
-                      <button
-                        onClick={() => {
-                          // Handle payment confirmation
-                        }}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                      >
-                        Confirm Payment
-                      </button>
+                  <div className="mt-6 flex flex-wrap gap-4 items-center">
+                    {appointment.status === 'awaiting_payment' ? (
+                      <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg font-medium">
+                        Waiting for buyer confirmation on payment
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            navigate(`/broker/appointments/${appointment._id}`, {
+                              state: { appointment },
+                            });
+                          }}
+                          className="bg-white text-[#002349] px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                        >
+                          View Details
+                        </button>
+                        
+                        {appointment.status === 'awaiting_payment_confirmation' && (
+                          <button
+                            onClick={() => {
+                              // Handle payment confirmation
+                            }}
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                          >
+                            Confirm Payment
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

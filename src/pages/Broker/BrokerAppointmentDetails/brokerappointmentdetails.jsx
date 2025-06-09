@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import { getAppointmentById } from "../../../network/appointment";
+import { getAppointmentById, deleteAppointment, updateAppointment } from "../../../network/appointment";
 
 const MySwal = withReactContent(Swal);
 
@@ -14,6 +14,7 @@ export default function BrokerAppointmentDetail() {
   const [loading, setLoading] = useState(!state?.appointment);
   const [error, setError] = useState(null);
   const [imageError, setImageError] = useState(false);
+  const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
     const fetchAppointment = async () => {
@@ -39,6 +40,69 @@ export default function BrokerAppointmentDetail() {
   const handleImageError = () => {
     setImageError(true);
   };
+
+  useEffect(() => {
+    if (feedback) {
+      console.log('Feedback changed to:', feedback);
+      
+      const handleFeedbackAction = async () => {
+        if (feedback === 'liked') {
+          try {
+            // Update appointment status to awaiting_payment
+            await updateAppointment(appointment._id, { status: 'awaiting_payment' });
+            
+            await Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: 'Moving to payment confirmation',
+              showConfirmButton: false,
+              timer: 1500
+            });
+            navigate("/confirm-payment");
+          } catch (err) {
+            console.error('Error updating appointment:', err);
+            await Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to update appointment status',
+              confirmButtonText: 'OK',
+              customClass: {
+                confirmButton: 'bg-[#002349] text-white px-6 py-2 rounded',
+              },
+              buttonsStyling: false
+            });
+          }
+        } else {
+          // If not liked, delete the appointment
+          try {
+            await deleteAppointment(appointment._id);
+            await Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: 'Appointment deleted successfully',
+              showConfirmButton: false,
+              timer: 1500
+            });
+            navigate("/broker-home");
+          } catch (err) {
+            console.error('Error deleting appointment:', err);
+            await Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to delete appointment. Please try again.',
+              confirmButtonText: 'OK',
+              customClass: {
+                confirmButton: 'bg-[#002349] text-white px-6 py-2 rounded',
+              },
+              buttonsStyling: false
+            });
+          }
+        }
+      };
+      
+      handleFeedbackAction();
+    }
+  }, [feedback, appointment?._id, navigate]);
 
   if (loading) {
     return (
@@ -90,44 +154,8 @@ export default function BrokerAppointmentDetail() {
       },
     });
 
-    if (!choice) return; // cancelled or no selection
-
-    if (choice === "notLiked") {
-      // 1) remove from likedAppointments
-      const storedLiked = JSON.parse(
-        localStorage.getItem("likedAppointments") || "[]"
-      );
-      const updatedLiked = storedLiked.filter((a) => a.id !== app.id);
-      localStorage.setItem("likedAppointments", JSON.stringify(updatedLiked));
-
-      // 2) remove from brokerAppointments
-      const storedBroker = JSON.parse(
-        localStorage.getItem("brokerAppointments") || "[]"
-      );
-      const updatedBroker = storedBroker.filter((a) => a.id !== app.id);
-      localStorage.setItem("brokerAppointments", JSON.stringify(updatedBroker));
-
-      await Swal.fire({
-        icon: "success",
-        title: "Removed",
-        text: "This appointment has been deleted.",
-        customClass: {
-          confirmButton: "bg-[#002349] text-white px-6 py-2 rounded",
-        },
-        buttonsStyling: false,
-      });
-
-      navigate("/broker-home");
-    } else {
-      // Liked → push into likedAppointments as before
-      const storedLiked = JSON.parse(
-        localStorage.getItem("likedAppointments") || "[]"
-      );
-      if (!storedLiked.some((a) => a.id === app.id)) {
-        storedLiked.push(app);
-        localStorage.setItem("likedAppointments", JSON.stringify(storedLiked));
-      }
-      navigate("/confirm-payment");
+    if (choice) {
+      setFeedback(choice);
     }
   };
 
