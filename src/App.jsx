@@ -21,6 +21,7 @@ import ScrollToTop from "./components/ScrollToTop/scrolltotop.jsx";
 import BrokerHomePage from "./pages/Broker/BrokerHomePage/brokerhomepage.jsx";
 import BrokerAppointmentDetail from "./pages/Broker/BrokerAppointmentDetails/brokerappointmentdetails.jsx";
 import ConfirmPaymentPage from "./pages/Broker/ConfirmPaymentPage/confirmpaymentpage.jsx";
+import CompletedAppointments from "./pages/Broker/CompletedAppointments/completedappointments.jsx";
 export default function App() {
   return (
     <>
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/broker-home" element={<BrokerHomePage />} />
           <Route path="/broker/appointments/:id" element={<BrokerAppointmentDetail />} />
           <Route path="/confirm-payment" element={<ConfirmPaymentPage />} />
+          <Route path="/completed-appointments" element={<CompletedAppointments />} />
           {/* 404 catch-all */}
           <Route
             path="*"
