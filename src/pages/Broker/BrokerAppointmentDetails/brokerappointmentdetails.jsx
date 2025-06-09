@@ -58,7 +58,7 @@ export default function BrokerAppointmentDetail() {
               showConfirmButton: false,
               timer: 1500
             });
-            navigate("/confirm-payment");
+            navigate("/broker-home");
           } catch (err) {
             console.error('Error updating appointment:', err);
             await Swal.fire({
