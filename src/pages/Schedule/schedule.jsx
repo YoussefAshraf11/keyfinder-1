@@ -2,35 +2,88 @@
 /* --------------------------------------------------
    Schedule.jsx   (v2 – matches blue mock-up)
    -------------------------------------------------- */
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import { useLocation } from "react-router-dom";
+import { getPropertyById } from "../../network/project";
+import { createAppointment } from "../../network/appointment";
+import { PROPERTY_TYPES, AREA_RANGES, PRICE_RANGES, PROPERTY_STATUS } from "../../utils/constants";
 /* ——— images ——— */
 import cover from "../../assets/Schedule/cover.svg";
-import fake1 from "../../assets/Schedule/fake 1.svg";
-import fake2 from "../../assets/Schedule/fake 2.svg";
-import fake3 from "../../assets/Schedule/fake 3.svg";
-import fake5 from "../../assets/Schedule/fake 5.svg";
+import BrokerCard from "./BrokerCard";
+import { useDispatch, useSelector } from "react-redux";
+import { setBrokers } from "../../store/usersSlice";
+import { getUsersList } from "../../network/user";
 
-/* ——— demo data ——— */
-const brokers = [
-  { id: 1, img: fake1, name: "Broker 1", title: "Senior Broker", rating: 5 },
-  { id: 2, img: fake2, name: "Broker 2", title: "Expert Broker", rating: 4.5 },
-  { id: 3, img: fake3, name: "Broker 3", title: "Senior Broker", rating: 4.8 },
-  { id: 4, img: fake5, name: "Broker 4", title: "Expert Broker", rating: 4.9 },
-];
 
 export default function Schedule() {
   const navigate = useNavigate();
+  const { id: paramId } = useParams();
+  const { state } = useLocation();
 
+  // Property fetch logic
+  const [property, setProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [gallery, setGallery] = useState([]);
+
+  // Scheduling state
   const [date, setDate] = useState("");
   const [time, setTime] = useState("12:00");
   const [selectedBroker, selectB] = useState(null);
-  const { state } = useLocation();
-  const selectedImg = state?.img || cover; // fall back to default cover
-  const incomingSpecs = state?.specs;
+
+  // Redux
+  const dispatch = useDispatch();
+  const brokers = useSelector((state) => state.users.brokers);
+  const loggedInUser = useSelector((state) => state.auth.user);
+
+  useEffect(() => {
+    const fetchBrokers = async () => {
+      try {
+        const response = await getUsersList({role: 'broker'});
+        // Expecting response.data to be an array of users
+        console.log(response.data.data);
+        dispatch(setBrokers(response.data.data));
+      } catch (err) {
+        // Optionally handle error
+        console.error("Failed to fetch brokers", err);
+      }
+    };
+    fetchBrokers();
+  }, [dispatch]);
+
+  // Prefer state.id, fallback to param
+  const propertyId = state?.property?._id || state?.id || paramId;
+
+
+  useEffect(() => {
+    if (!propertyId) {
+      setError("No property ID provided");
+      setLoading(false);
+      return;
+    }
+    const fetchProperty = async () => {
+      try {
+        setLoading(true);
+        const response = await getPropertyById(propertyId);
+        const propertyData = response.data.data;
+        setProperty(propertyData);
+        if (propertyData.images && propertyData.images.length > 0) {
+          setGallery(propertyData.images);
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to load property details");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProperty();
+  }, [propertyId]);
+
+  const selectedImg = gallery[0] || state?.img || cover;
+
   const handleSelect = (b) => {
     selectB(b);
     Swal.fire({
@@ -41,29 +94,56 @@ export default function Schedule() {
     });
   };
 
-  const handleSubmit = (e) => {
+
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const appointment = {
-      id: Date.now(),
-      img: selectedImg,
-      broker: selectedBroker.name,
-      at: date,
-      location: "Alexandria",
-      time: time,
-      type: "Apartments",
-      area: "120 sqm",
-      bedrooms: 3,
-      bathrooms: 2,
-      price: "$150 000",
-    };
+    // Combine date and time into ISO string
+    let appointmentDate = null;
+    if (date && time) {
+      let [hourStr, minStr] = time.split(":");
+      let [minutes, ampm] = minStr.split(" ");
+      let hour = parseInt(hourStr, 10);
+      if (ampm === "PM" && hour !== 12) hour += 12;
+      if (ampm === "AM" && hour === 12) hour = 0;
+      const iso = new Date(date);
+      iso.setHours(hour, 0, 0, 0);
+      appointmentDate = iso.toISOString();
+    }
 
-    const prev = JSON.parse(localStorage.getItem("appointments") || "[]");
-    const updated = [...prev, appointment];
-    localStorage.setItem("appointments", JSON.stringify(updated));
+    try {
+      const payload = {
+        buyerId: loggedInUser.id,
+        brokerId: selectedBroker._id,
+        propertyId: property._id,
+        appointmentDate: appointmentDate,
+        type: "initial"
+      };
 
-    navigate("/myappointments");
+      const response = await createAppointment(payload);
+      
+      if (response.data) {
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "Appointment scheduled successfully",
+          confirmButtonColor: "#002855",
+        }).then(() => {
+          navigate("/myappointments");
+        });
+      }
+    } catch (error) {
+      console.log("error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.response?.data?.error?.message || "Failed to schedule appointment",
+        confirmButtonColor: "#002855",
+      });
+    }
   };
+
 
   return (
     <form
@@ -71,22 +151,38 @@ export default function Schedule() {
       className="mx-auto max-w-[900px] px-4 py-10 space-y-12 text-[#002855]"
     >
       {/* ───────────────── property + specs ───────────────── */}
-      <div className="flex flex-col md:flex-row gap-6">
-        <img
-          src={selectedImg}
-          alt="Property"
-          className="w-full md:w-[420px] aspect-[4/3] object-cover rounded-lg shadow"
-        />
-
-        <div className="flex-1 bg-[#002855] text-white rounded-lg p-6 space-y-2 text-base sm:text-lg">
-          <Spec label="Type" val="Apartments" />
-          <Spec label="Area" val="120 sqm" />
-          <Spec label="Bedrooms" val="3" />
-          <Spec label="Bathrooms" val="2" />
-          <Spec label="Location" val="Alexandria" />
-          <Spec label="Price" val="$150 000" />
+      {loading ? (
+        <div className="flex justify-center items-center min-h-[30vh] text-xl text-[#002855]">Loading property details...</div>
+      ) : error ? (
+        <div className="flex justify-center items-center min-h-[30vh] text-xl text-red-600">{error}</div>
+      ) : property ? (
+        <div className="flex flex-col md:flex-row gap-6">
+          {gallery[0] ? (
+            <img
+              src={gallery[0]}
+              alt={property.title || "Property"}
+              className="w-full md:w-[420px] aspect-[4/3] object-cover rounded-lg shadow"
+              onError={e => { e.target.onerror = null; e.target.src = cover; }}
+            />
+          ) : (
+            <div className="w-full md:w-[420px] aspect-[4/3] bg-gray-200 rounded-lg flex items-center justify-center">
+              <span className="text-gray-500">No Image</span>
+            </div>
+          )}
+          <div className="flex-1 bg-[#002855] text-white rounded-lg p-6 space-y-2 text-base sm:text-lg">
+            <h3 className="text-2xl font-semibold mb-2">{property.title || 'Untitled Property'}</h3>
+            {property.description && <p className="mb-2 text-gray-200">{property.description}</p>}
+            <Spec label="Type" val={PROPERTY_TYPES[property.type] || property.type || 'N/A'} />
+            <Spec label="Area" val={AREA_RANGES[property.areaRange] || `${property.area || 'N/A'} sqm`} />
+            <Spec label="Bedrooms" val={property.bedrooms || 'N/A'} />
+            <Spec label="Bathrooms" val={property.bathrooms || 'N/A'} />
+            <Spec label="Price" val={PRICE_RANGES[property.priceRange] || `$${property.price?.toLocaleString() || 'N/A'}`} />
+            <Spec label="Status" val={PROPERTY_STATUS[property.status] || property.status || 'N/A'} />
+            {property.location && <Spec label="Location" val={property.location} />}
+          </div>
         </div>
-      </div>
+      ) : null}
+
 
       {/* ───────────────── date & time ───────────────── */}
       {/* ─────────────── date & time (stacked under labels) ─────────────── */}
@@ -153,39 +249,13 @@ export default function Schedule() {
         <p className="text-xl font-bold">Choose Broker:</p>
 
         <div className="flex flex-wrap justify-center gap-6">
-          {brokers.map((b) => (
-            <div
-              key={b.id}
-              className={`w-44 h-72 bg-[#002855] text-white rounded-xl p-4 flex flex-col items-center
-                  justify-between text-center ${
-                    selectedBroker?.id === b.id ? "ring-2 ring-white" : ""
-                  }`}
-            >
-              {/* Oval image */}
-              <div className="w-20 aspect-[2/3] overflow-hidden rounded-full border-2 border-white">
-                <img
-                  src={b.img}
-                  alt={b.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Info block */}
-              <div className="space-y-1 text-sm leading-tight mt-2">
-                <p className="font-semibold">Experienced</p>
-                <p className="text-xs">Customers Rate:</p>
-                <Stars rating={b.rating} />
-              </div>
-
-              {/* Button */}
-              <button
-                type="button"
-                onClick={() => handleSelect(b)}
-                className="rounded-full bg-white text-[#002855] text-sm px-4 py-1 mt-2"
-              >
-                Select
-              </button>
-            </div>
+          {brokers?.length  >0 && brokers?.map((b) => (
+            <BrokerCard
+              key={b._id}
+              broker={b}
+              selected={selectedBroker?._id === b._id}
+              onSelect={handleSelect}
+            />
           ))}
         </div>
       </div>

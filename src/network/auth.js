@@ -11,4 +11,8 @@ const validateOtp = async (payload) => await axiosInstance.post('/api/auth/valid
 
 const resetPasswordOtp = async (payload) => await axiosInstance.post('/api/auth/reset-password-otp', payload);
 
-export {login, signup, validateUserAndSendOtp, validateOtp, resetPasswordOtp};
+const getLoggedInUser = async () => await axiosInstance.get('/api/auth/get-logged-in-user');
+
+const updateLoggedInUser = async (payload) => await axiosInstance.put('/api/auth/update-logged-in-user', payload);
+
+export {login, signup, validateUserAndSendOtp, validateOtp, resetPasswordOtp, getLoggedInUser, updateLoggedInUser  };

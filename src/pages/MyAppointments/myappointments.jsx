@@ -1,18 +1,49 @@
 /* --------------------------------------------------
-   MyAppointments.jsx – loads from localStorage
+   MyAppointments.jsx – loads from API
    -------------------------------------------------- */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+import { getMyAppointments, deleteAppointment } from "../../network/appointment";
+
+const formatAppointmentType = (type) => {
+  switch (type) {
+    case 'initial':
+      return 'Initial';
+    case 'payment':
+      return 'Payment';
+    default:
+      return type;
+  }
+};
 
 export default function MyAppointments() {
   const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [failedImages, setFailedImages] = useState(new Set());
   const navigate = useNavigate();
 
+  const fetchAppointments = async () => {
+    try {
+      const response = await getMyAppointments();
+      console.log("Appointments:", response.data.data);
+      setAppointments(response.data.data);
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to load appointments",
+        confirmButtonColor: "#002855",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("appointments") || "[]");
-    setAppointments(stored);
+    fetchAppointments();
   }, []);
 
   const handleCancel = (id) => {
@@ -26,9 +57,15 @@ export default function MyAppointments() {
       confirmButtonText: "Yes, cancel it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        const updated = appointments.filter((a) => a.id !== id);
-        setAppointments(updated);
-        localStorage.setItem("appointments", JSON.stringify(updated));
+        deleteAppointment(id)
+          .then(() => {
+            fetchAppointments();
+          })
+          .catch((err) => {
+            console.error("Error deleting appointment:", err);
+            Swal.fire("Error!", "Failed to delete appointment", "error");
+          });
+        
         Swal.fire(
           "Cancelled!",
           "Your appointment has been cancelled.",
@@ -38,9 +75,24 @@ export default function MyAppointments() {
     });
   };
 
+  const handleImageError = (propertyId) => {
+    setFailedImages(prev => new Set([...prev, propertyId]));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#002349] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading appointments...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section className="container mx-auto px-4 py-10 max-w-6xl">
-      {appointments.length === 0 ? (
+      {appointments?.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <h1 className="text-[#002349] font-bold text-xl mb-2 text-center">
             My Appointments
@@ -49,50 +101,80 @@ export default function MyAppointments() {
         </div>
       ) : (
         <div className="space-y-6">
-          {appointments.map((a) => (
+          {appointments?.map((a) => (
             <div
-              key={a.id}
-              className="bg-[#002349] text-white rounded-xl p-4 flex flex-col gap-4 "
+              key={a._id}
+              className="bg-[#002349] text-white rounded-xl p-4 flex flex-col gap-4"
             >
               <div className="flex gap-4 items-center">
-                <img
-                  src={a.img}
-                  alt="Property"
-                  className="w-[496px] h-[290px] object-cover rounded "
-                />
+                <div className="w-[496px] h-[290px] rounded-lg shrink-0 bg-[#001731] flex items-center justify-center overflow-hidden">
+                  {!a.property?.images?.[0] || failedImages.has(a.property._id) ? (
+                    <div className="text-white text-center p-4">
+                      <p className="text-lg font-semibold">Image Not Available</p>
+                    </div>
+                  ) : (
+                    <img
+                      src={a.property.images[0]}
+                      alt={a.property.title || "Property"}
+                      className="w-full h-full object-cover rounded-lg"
+                      onError={() => handleImageError(a.property._id)}
+                    />
+                  )}
+                </div>
 
-                <div className="flex-1 space-y-1 text-xl ">
+                <div className="flex-1 space-y-1 text-xl">
                   <p>
                     <span className="font-semibold">With broker:</span>{" "}
-                    {a.broker}
+                    {a.brokerId?.username || "Unknown"}
                   </p>
                   <p>
-                    <span className="font-semibold">At:</span> {a.at}
+                    <span className="font-semibold">Property:</span>{" "}
+                    {a.property?.title || "Unknown"}
                   </p>
                   <p>
-                    <span className="font-semibold">Location:</span>{" "}
-                    {a.location}
+                    <span className="font-semibold">Type:</span>{" "}
+                    {formatAppointmentType(a.type)}
                   </p>
                   <p>
-                    <span className="font-semibold">Time of appointment:</span>{" "}
-                    {a.time}
+                    <span className="font-semibold">Date:</span>{" "}
+                    {new Date(a.appointmentDate).toLocaleDateString()}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Time:</span>{" "}
+                    {new Date(a.appointmentDate).toLocaleTimeString()}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Status:</span>{" "}
+                    {a.status}
                   </p>
                 </div>
               </div>
 
               <div className="flex justify-end gap-4">
-                <button
-                  onClick={() => handleCancel(a.id)}
-                  className="rounded-xl bg-white text-[#002855] px-6 py-2 font-bold"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => navigate("/payment", { state: a })}
-                  className="rounded-xl bg-white text-[#002855] px-6 py-2 font-bold"
-                >
-                  Continue With Payment
-                </button>
+                {a.status !== 'completed' && (
+                  <button
+                    onClick={() => handleCancel(a._id)}
+                    className="rounded-xl bg-white text-[#002855] px-6 py-2 font-bold"
+                  >
+                    Cancel
+                  </button>
+                )}
+                {a.status === 'awaiting_payment' && (
+                  <button
+                    onClick={() => navigate(`/payment/${a._id}`, { state: a })}
+                    className="rounded-xl bg-white text-[#002855] px-6 py-2 font-bold"
+                  >
+                    Continue With Payment
+                  </button>
+                )}
+                {(a.status === 'scheduled' || a.status === 'awaiting_payment_confirmation') && (
+                  <button
+                    disabled
+                    className="rounded-xl bg-gray-400 text-white px-6 py-2 font-bold cursor-not-allowed"
+                  >
+                    Waiting Broker Confirmation
+                  </button>
+                )}
               </div>
             </div>
           ))}

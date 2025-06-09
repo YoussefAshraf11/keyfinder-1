@@ -1,127 +1,170 @@
-/* eslint-disable no-unused-vars */
-// src/pages/BrokerHomePage.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import img1 from "../../../assets/Broker/1.svg";
-import img2 from "../../../assets/Broker/2.svg";
-import img3 from "../../../assets/Broker/3.svg";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
+import { getMyAppointments } from "../../../network/appointment";
 
-const DUMMY_APPTS = [
-  {
-    id: 1,
-    image: img1,
-    brokerName: "John Doe",
-    date: "2025-06-01",
-    time: "10:00 AM",
-    location: "Downtown Office",
-  },
-  {
-    id: 2,
-    image: img2,
-    brokerName: "Jane Smith",
-    date: "2025-06-02",
-    time: "02:30 PM",
-    location: "Uptown Branch",
-  },
-  {
-    id: 3,
-    image: img3,
-    brokerName: "Alex Johnson",
-    date: "2025-06-03",
-    time: "11:15 AM",
-    location: "Suburb Center",
-  },
-];
+const formatAppointmentType = (type) => {
+  switch (type) {
+    case 'initial':
+      return 'Initial';
+    case 'payment':
+      return 'Payment';
+    default:
+      return type;
+  }
+};
 
 export default function BrokerHomePage() {
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [failedImages, setFailedImages] = useState(new Set());
   const navigate = useNavigate();
 
-  // load from localStorage or fall back to DUMMY_APPTS only if key is absent
-  const [apps, setApps] = useState(() => {
-    const raw = localStorage.getItem("brokerAppointments");
-    if (raw === null) {
-      // no saved appointments → use defaults
-      return DUMMY_APPTS;
-    }
+  const fetchAppointments = async () => {
     try {
-      const parsed = JSON.parse(raw);
-      // if parsed is an array, use it (even if it's empty)
-      return Array.isArray(parsed) ? parsed : DUMMY_APPTS;
-    } catch {
-      // malformed JSON → reset to defaults
-      return DUMMY_APPTS;
+      const response = await getMyAppointments();
+      console.log("Broker Appointments:", response.data.data);
+      
+      // Filter appointments to show only 'scheduled' or 'awaiting_payment' statuses
+      const filteredAppointments = response.data.data.filter(appointment => 
+        appointment.status === 'scheduled' || appointment.status === 'awaiting_payment'
+      );
+      
+      console.log("Filtered Appointments:", filteredAppointments);
+      setAppointments(filteredAppointments);
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to load appointments",
+        confirmButtonColor: "#002855",
+      });
+    } finally {
+      setLoading(false);
     }
-  });
+  };
 
-  // persist any changes to brokerAppointments
   useEffect(() => {
-    localStorage.setItem("brokerAppointments", JSON.stringify(apps));
-  }, [apps]);
+    fetchAppointments();
+  }, []);
 
-  // if no appointments, center the message
-  if (apps.length === 0) {
+  const handleImageError = (propertyId) => {
+    setFailedImages(prev => new Set([...prev, propertyId]));
+  };
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-gray-600 text-xl">
-          You have no appointments scheduled.
-        </p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#002349] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading appointments...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-screen-xl mx-auto px-4 py-8 space-y-8">
-        {apps.map((app) => (
-          <div
-            key={app.id}
-            className="flex flex-col lg:flex-row bg-[#002349] rounded-md shadow-md overflow-hidden"
-          >
-            {/* image */}
-            <div className="w-full lg:w-1/3 h-48 md:h-64 lg:h-auto">
-              <img
-                src={app.image}
-                alt={`Appointment ${app.id}`}
-                className="w-full h-full object-cover"
-              />
-            </div>
+    <section className="container mx-auto px-4 py-10 max-w-6xl">
+      <h1 className="text-[#002349] font-bold text-2xl mb-8">My Appointments</h1>
+      
+      {appointments?.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <p className="text-center text-gray-500">No appointments scheduled</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {appointments?.map((appointment) => (
+            <div
+              key={appointment._id}
+              className="bg-[#002349] text-white rounded-xl p-6 shadow-lg"
+            >
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Property Image */}
+                <div className="w-full md:w-1/3 h-48 bg-[#001731] rounded-lg overflow-hidden flex-shrink-0">
+                  {!appointment.property?.images?.[0] || failedImages.has(appointment.property._id) ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <p className="text-white">No Image Available</p>
+                    </div>
+                  ) : (
+                    <img
+                      src={appointment.property.images[0]}
+                      alt={appointment.property.title || "Property"}
+                      className="w-full h-full object-cover"
+                      onError={() => handleImageError(appointment.property._id)}
+                    />
+                  )}
+                </div>
 
-            {/* details */}
-            <div className="flex-1 p-6 flex flex-col justify-center">
-              <ul className="space-y-2 text-white">
-                <li>
-                  <span className="font-semibold">With broker:</span>{" "}
-                  {app.brokerName}
-                </li>
-                <li>
-                  <span className="font-semibold">At:</span> {app.date}
-                </li>
-                <li>
-                  <span className="font-semibold">Location:</span>{" "}
-                  {app.location}
-                </li>
-                <li>
-                  <span className="font-semibold">Time of appointment:</span>{" "}
-                  {app.time}
-                </li>
-              </ul>
+                {/* Appointment Details */}
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold mb-4">{appointment.property?.title || 'Appointment Details'}</h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-300">Client</p>
+                      <p className="font-medium">{appointment.buyerId?.username || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-300">Type</p>
+                      <p className="font-medium">{formatAppointmentType(appointment.type)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-300">Date</p>
+                      <p className="font-medium">
+                        {new Date(appointment.appointmentDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-300">Time</p>
+                      <p className="font-medium">
+                        {new Date(appointment.appointmentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-300">Status</p>
+                      <p className="font-medium capitalize">{appointment.status.replace('_', ' ')}</p>
+                    </div>
+                  </div>
 
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={() =>
-                    navigate(`/broker/appointments/${app.id}`, {
-                      state: { appointment: app },
-                    })
-                  }
-                  className="bg-white text-[#002349] px-6 py-2 rounded text-sm font-medium hover:bg-gray-100 transition-colors"
-                >
-                  Check Appointment
-                </button>
+                  <div className="mt-6 flex flex-wrap gap-4 items-center">
+                    {appointment.status === 'awaiting_payment' ? (
+                      <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg font-medium">
+                        Waiting for buyer confirmation on payment
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            navigate(`/broker/appointments/${appointment._id}`, {
+                              state: { appointment },
+                            });
+                          }}
+                          className="bg-white text-[#002349] px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                        >
+                          View Details
+                        </button>
+                        
+                        {appointment.status === 'awaiting_payment_confirmation' && (
+                          <button
+                            onClick={() => {
+                              // Handle payment confirmation
+                            }}
+                            className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                          >
+                            Confirm Payment
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

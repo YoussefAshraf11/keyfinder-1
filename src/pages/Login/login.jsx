@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaHome } from "react-icons/fa";
 import backgroundImg from "../../assets/Login/login.svg";
 import { login } from "../../network/auth.js";
+import { useDispatch } from "react-redux";
+import { setCredentials, setLoading, setError } from "../../store/authSlice";
 
 const roletypes = {
   buyer: "buyer",
@@ -13,47 +15,53 @@ const roletypes = {
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [keepSignedIn, setKeepSignedIn] = useState(false);
-  const [errMessage,setErrMessage] = useState("")
+  const [errMessage, setErrMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    dispatch(setLoading(true));
 
-    try{
+    try {
       const response = await login({
-        email:email,
-        password:password
-      })
+        email: email,
+        password: password
+      });
       const userData = response?.data;
       const userRole = userData?.data?.user.role;
-  
-      if(userRole === roletypes.admin){
+      const token = userData?.data?.token;
+
+      // Store user data in Redux
+      dispatch(setCredentials({
+        user: {
+          ...userData.data.user,
+          role: userRole
+        },
+        token: token
+      }));
+
+      if (userRole === roletypes.admin) {
         console.log("Admin logged in");
-      } else if(userRole === roletypes.broker){
-        // Store user data in localStorage for navbar to use
-        localStorage.setItem("user", JSON.stringify({
-          ...userData.data.user,
-          role: userRole
-        }));
+      } else if (userRole === roletypes.broker) {
         navigate('/broker-home');
-      } else if(userRole === roletypes.buyer){
-        // Store user data in localStorage for navbar to use
-        localStorage.setItem("user", JSON.stringify({
-          ...userData.data.user,
-          role: userRole
-        }));
+      } else if (userRole === roletypes.buyer) {
         navigate('/');
       } else {
+        dispatch(setError("Invalid user role"));
         setErrMessage("Invalid user role");
       }
-    }catch(err){
-      setErrMessage("Invalid email or password. Please try again.")
+    } catch (err) {
+      const errorMessage = "Invalid email or password. Please try again.";
+      dispatch(setError(errorMessage));
+      setErrMessage(errorMessage);
+    } finally {
+      dispatch(setLoading(false));
     }
-
-    // localStorage.setItem("user", JSON.stringify({ email }));
   };
+
   return (
     <div
       className="fixed inset-0 bg-cover bg-center flex items-center justify-center"
@@ -122,7 +130,7 @@ export default function SignIn() {
           />
 
           <div className="flex items-center justify-between mb-4 text-sm">
-            <label className="inline-flex items-center">
+            {/* <label className="inline-flex items-center">
               <input
                 type="checkbox"
                 checked={keepSignedIn}
@@ -130,7 +138,7 @@ export default function SignIn() {
                 className="form-checkbox h-4 w-4 text-white"
               />
               <span className="ml-2">Keep Me Signed In</span>
-            </label>
+            </label> */}
             <Link
               to="/forgot-password"
               className="underline hover:text-gray-300"

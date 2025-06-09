@@ -4,6 +4,10 @@ import ProjectCard from "../../components/ProjectCard/projectcard";
 import PropertyCard from "../../components/PropertyCard/propertycard";
 import DeveloperLogo from "../../components/DeveloperLogo/developerlogo";
 import { useRef, useEffect, useState, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getProjects, getProperties } from "../../network/project";
+import { setProjectsList, setPropertiesList, setLoading, setProjectError } from "../../store/projectSlice";
+import { useNavigate } from "react-router-dom";
 
 /* ---  A.  Real-Estate Project thumbnails  --- */
 import PalmHillsProj from "../../assets/Real Estate Projects/Palm Hills.svg";
@@ -28,27 +32,55 @@ import ValoreDev from "../../assets/Real Estate Developers in Alexandria/Valore 
 import ValoreProj from "../../assets/Real Estate Projects/Valore.svg";
 import RoyalZoneProj from "../../assets/Real Estate Projects/Royal Zone Villas.svg";
 import AlexWestProj from "../../assets/Real Estate Projects/Alex West.svg";
-import { useNavigate } from "react-router-dom";
+
 export default function Home() {
   const navigate = useNavigate();
-  /* ------------- data ------------- */
-  const projects = [
-    { img: PalmHillsProj, name: "Palm Hills" },
-    { img: TheOneProj, name: "The One" },
-    { img: JewarProj, name: "Jewar" },
-    { img: ValoreProj, name: "Valore" },
-    { img: RoyalZoneProj, name: "Royal Zone Villas" },
-    { img: AlexWestProj, name: "Alex West" },
-  ];
+  const dispatch = useDispatch();
+  const projects = useSelector((state) => state.project.projects);
+  const properties = useSelector((state) => state.project.properties);
+  const loading = useSelector((state) => state.project.loading);
 
-  const properties = [
-    { img: Apartments, name: "Apartments" },
-    { img: StandAlone, name: "Stand Alone Villas" },
-    { img: TwinVillas, name: "Twin Villas" },
-    { img: Duplex, name: "Duplex" },
-    { img: Chalet, name: "Chalet" },
-    { img: SVillas, name: "S Villas" },
-  ];
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        dispatch(setLoading(true));
+        const response = await getProjects();
+        dispatch(setProjectsList(response.data.data));
+      } catch (error) {
+        dispatch(setProjectError(error.message));
+        console.error('Error fetching projects:', error);
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
+
+    fetchProjects();
+  }, [dispatch]);
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        dispatch(setLoading(true));
+        const response = await getProperties({ all: true });
+        dispatch(setPropertiesList(response.data.data.properties));
+      } catch (error) {
+        dispatch(setProjectError(error.message));
+        console.error('Error fetching properties:', error);
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
+
+    fetchProperties();
+  }, [dispatch]);
+
+  useEffect(() => {
+    console.log('Projects updated:', projects);
+  }, [projects]);
+
+  useEffect(() => {
+    console.log('Properties updated:', properties);
+  }, [properties]);
 
   const developers = [
     { img: PalmHillsDev, name: "Palm Hills Developments" },
@@ -86,6 +118,17 @@ export default function Home() {
       window.removeEventListener("resize", reportEdges);
     };
   }, [reportEdges]);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#002349] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading content...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <main className="min-h-screen">
@@ -129,13 +172,18 @@ export default function Home() {
 
           {/* grid → 3 columns on md+  */}
           <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3 place-items-center">
-            {projects.map((p) => (
+            {projects.map((project) => (
               <div
-                key={p.name}
-                onClick={() => navigate("/more-details")}
+                key={project._id}
+                onClick={() => navigate(`/project-details/${project._id}`)}
                 className="w-full cursor-pointer"
               >
-                <ProjectCard key={p.name} {...p} />
+                <ProjectCard 
+                  key={project._id} 
+                  name={project.name}
+                  img={project.image
+                  } // Assuming you have an images array in your project model
+                />
               </div>
             ))}
           </div>
@@ -161,9 +209,12 @@ export default function Home() {
                 "--tw-after-opacity": fadeR ? 1 : 0,
               }}
             >
-              {properties.map((p) => (
-                <div key={p.id} className="shrink-0 w-[320px]">
-                  <PropertyCard {...p} />
+              {properties.map((property) => (
+                <div key={property._id} className="shrink-0 w-[320px]">
+                  <PropertyCard 
+                    name={property.title}
+                    img={property.images?.[0] || ''}
+                  />
                 </div>
               ))}
             </div>

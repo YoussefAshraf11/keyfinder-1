@@ -7,6 +7,7 @@ import brandLogo from "../../assets/logo.svg";
 const BROKER_NAV = [
   { name: "My Appointments", path: "/broker-home" },
   { name: "Complete Payment", path: "/confirm-payment" },
+  { name: "Completed Appointments", path: "/completed-appointments" },
 ];
 
 /* ——— routes for normal users ——— */

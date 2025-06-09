@@ -1,105 +1,86 @@
 // src/components/Favourites.jsx
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Star } from "lucide-react";
-import img1 from "../../assets/Lisiting/1.svg";
-import img2 from "../../assets/Lisiting/2.svg";
-import img3 from "../../assets/Lisiting/3.svg";
-import img4 from "../../assets/Lisiting/4.svg";
-import img5 from "../../assets/Lisiting/5.svg";
-import img6 from "../../assets/Lisiting/6.svg";
+import { getUserFavorites, removeFromFavorites } from "../../network/user";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../store/authSlice";
+import { getLoggedInUser } from "../../network/auth";
+import { PROPERTY_TYPES, AREA_RANGES, PRICE_RANGES, PROPERTY_STATUS } from "../../utils/constants";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
-/* master list so we can look props up by id */
-const allProps = [
-  {
-    id: 1,
-    image: img1,
-    type: "Apartments",
-    area: "120 sqm",
-    bedrooms: 3,
-    bathrooms: 2,
-    location: "Alexandria",
-    price: "$150 000",
-  },
-  {
-    id: 2,
-    image: img2,
-    type: "Stand Alone Villas",
-    area: "300 sqm",
-    bedrooms: 4,
-    bathrooms: 3,
-    location: "Alexandria",
-    price: "$350 000",
-  },
-  {
-    id: 3,
-    image: img3,
-    type: "Twin Villas",
-    area: "280 sqm",
-    bedrooms: 4,
-    bathrooms: 3,
-    location: "Alexandria",
-    price: "$330 000",
-  },
-  {
-    id: 4,
-    image: img4,
-    type: "Duplex",
-    area: "200 sqm",
-    bedrooms: 3,
-    bathrooms: 2,
-    location: "Alexandria",
-    price: "$220 000",
-  },
-  {
-    id: 5,
-    image: img5,
-    type: "Chalet",
-    area: "350 sqm",
-    bedrooms: 5,
-    bathrooms: 4,
-    location: "Alexandria",
-    price: "$420 000",
-  },
-  {
-    id: 6,
-    image: img6,
-    type: "S Villas",
-    area: "400 sqm",
-    bedrooms: 6,
-    bathrooms: 5,
-    location: "Alexandria",
-    price: "$550 000",
-  },
-];
 
 export default function Favourites() {
-  /* read once from LS, then hold in state */
-  const [favIds, setFavIds] = useState(() =>
-    JSON.parse(localStorage.getItem("favourites") || "[]")
-  );
+  const dispatch = useDispatch();
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [imageErrors, setImageErrors] = useState({});
 
-  /* helper: update LS + state */
-  const removeFav = (id) => {
-    const updated = favIds.filter((n) => n !== id);
-    setFavIds(updated);
-    localStorage.setItem("favourites", JSON.stringify(updated));
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
+
+  const fetchFavorites = async () => {
+    try {
+      setLoading(true);
+      const response = await getUserFavorites();
+      if (response.data.success) {
+        setFavorites(response.data.data.properties);
+      }
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const favourites = useMemo(
-    () => allProps.filter((p) => favIds.includes(p.id)),
-    [favIds]
-  );
+  const removeFav = async (propertyId) => {
+    try {
+      await removeFromFavorites({ propertyId });
+      
+      // Get updated user data after removing favorite
+      const response = await getLoggedInUser();
+      if (response.data.success) {
+        // Update user data in Redux store
+        dispatch(setCredentials({
+          user: response.data.data.user,
+          token: localStorage.getItem('token')
+        }));
+      }
+      
+      // Refresh favorites list
+      fetchFavorites();
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+    }
+  };
+
+  const handleImageError = (propertyId) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [propertyId]: true
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#002349] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading favorites...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="bg-white pt-8 pb-14 px-4 md:px-8 max-w-5xl mx-auto min-h-[40vh]">
-      {favourites.length === 0 ? (
+      {favorites.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <h1 className="text-[#002349] font-bold text-xl mb-2 text-center">
             My Favourites
           </h1>
           <p className="text-center text-gray-500">
-            You haven’t added any properties yet.
+            You haven't added any properties yet.
           </p>
         </div>
       ) : (
@@ -108,14 +89,14 @@ export default function Favourites() {
             My Favourites
           </h1>
           <div className="space-y-8">
-            {favourites.map((p) => (
+            {favorites.map((property) => (
               <article
-                key={p.id}
+                key={property._id}
                 className="relative flex gap-5 bg-[#002349] rounded-xl px-5 py-6 shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
               >
                 {/* clickable star → remove */}
                 <button
-                  onClick={() => removeFav(p.id)}
+                  onClick={() => removeFav(property._id)}
                   className="absolute top-4 right-4"
                   aria-label="remove from favourites"
                 >
@@ -128,40 +109,52 @@ export default function Favourites() {
                 </button>
 
                 {/* thumbnail */}
-                <img
-                  src={p.image}
-                  alt={p.type}
-                  className="w-[496px] h-[290px] object-cover rounded-lg shrink-0"
-                />
+                <div className="w-[496px] h-[290px] rounded-lg shrink-0 bg-[#001731] flex items-center justify-center overflow-hidden">
+                  {!property.images?.[0] || imageErrors[property._id] ? (
+                    <div className="text-white text-center p-4">
+                      <p className="text-lg font-semibold">Image Not Available</p>
+                    </div>
+                  ) : (
+                    <img
+                      src={property.images[0]}
+                      alt={property.title || 'Property image'}
+                      className="w-full h-full object-cover rounded-lg"
+                      onError={() => handleImageError(property._id)}
+                    />
+                  )}
+                </div>
 
                 {/* details + Select */}
                 <div className="flex flex-col justify-between flex-1">
-                  <ul className="text-white text-[12px] leading-[16px] space-y-[2px]">
-                    <li className="text-xl">
-                      <span className="font-semibold">Type: </span>
-                      {p.type}
-                    </li>
-                    <li className="text-xl">
-                      <span className="font-semibold">Area: </span>
-                      {p.area}
-                    </li>
-                    <li className="text-xl">
-                      <span className="font-semibold">Bedrooms: </span>
-                      {p.bedrooms}
-                    </li>
-                    <li className="text-xl">
-                      <span className="font-semibold">Bathrooms: </span>
-                      {p.bathrooms}
-                    </li>
-                    <li className="text-xl">
-                      <span className="font-semibold">Location: </span>
-                      {p.location}
-                    </li>
-                    <li className="text-xl">
-                      <span className="font-semibold">Price: </span>
-                      {p.price}
-                    </li>
-                  </ul>
+                  <div>
+                    <h3 className="text-white text-2xl font-semibold mb-4">{property.title}</h3>
+                    <ul className="text-white text-[12px] leading-[16px] space-y-[2px]">
+                      <li className="text-xl">
+                        <span className="font-semibold text-xl">Type: </span>
+                        {PROPERTY_TYPES[property.type] || property.type}
+                      </li>
+                      <li className="text-xl">
+                        <span className="font-semibold text-xl">Area: </span>
+                        {AREA_RANGES[property.areaRange] || property.areaRange}
+                      </li>
+                      <li className="text-xl">
+                        <span className="font-semibold text-xl">Bedrooms: </span>
+                        {property.bedrooms}
+                      </li>
+                      <li className="text-xl">
+                        <span className="font-semibold text-xl">Bathrooms: </span>
+                        {property.bathrooms}
+                      </li>
+                      <li className="text-xl">
+                        <span className="font-semibold text-xl">Price: </span>
+                        {PRICE_RANGES[property.priceRange] || property.priceRange}
+                      </li>
+                      <li className="text-xl">
+                        <span className="font-semibold text-xl">Status: </span>
+                        {PROPERTY_STATUS[property.status] || property.status}
+                      </li>
+                    </ul>
+                  </div>
 
                   <button
                     onClick={() => {
@@ -175,7 +168,7 @@ export default function Favourites() {
                         confirmButtonText: "Yes, remove it!",
                       }).then((result) => {
                         if (result.isConfirmed) {
-                          removeFav(p.id);
+                          removeFav(property._id);
                           Swal.fire({
                             icon: "success",
                             title: "Removed!",
